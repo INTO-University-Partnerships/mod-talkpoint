@@ -62,6 +62,8 @@ Install [Composer](https://getcomposer.org/download/) if it isn't already.
 
 ### PHPUnit
 
+Comment-out line `173` of `lib/phpunit/bootstrap.php`, then:
+
     php admin/tool/phpunit/cli/util.php --buildcomponentconfigs
     vendor/bin/phpunit -c mod/talkpoint
 
