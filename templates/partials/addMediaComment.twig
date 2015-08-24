@@ -1,0 +1,20 @@
+<hr/>
+<div>
+    <object id="nimbb" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="320" height="240" codebase= "http://fpdownload.macromedia.com/get/flashplayer/current/swflash.cab">
+        <param name="movie" value="{% verbatim %}{{ init }}{% endverbatim %}" />
+        <param name="allowScriptAccess" value="always" />
+        <embed name="nimbb" ng-src="{% verbatim %}{{ init }}{% endverbatim %}" width="320" height="240" allowScriptAccess="always" pluginspage="http://www.adobe.com/go/getflashplayer" type="application/x-shockwave-flash">
+        </embed>
+    </object>
+</div>
+<div>
+    <button type="button" ng-click="toggleRecording()" ng-bind="toggleButtonLabel" ng-disabled="toggleButtonDisabled"></button>
+    <button type="button" ng-click="saveMedia()" ng-disabled="!readyToSave" ng-show="mediaType == 'webcam'">{{ trans('savewebcam', plugin) }}</button>
+    <button type="button" ng-click="saveMedia()" ng-disabled="!readyToSave" ng-show="mediaType == 'audio'">{{ trans('saveaudio', plugin) }}</button>
+    <button type="button" ng-click="shutdown()">{{ trans('cancel') }}</button>
+    <div ng-show="canManage && !talkpointClosed">
+        <input type="checkbox" ng-model="finalfeedback"/>
+        <span>{{ trans('leavefinalfeedback', plugin) }}</span>
+    </div>
+</div>
+<hr/>

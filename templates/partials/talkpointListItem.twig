@@ -1,0 +1,8 @@
+<div>
+    <span>{% verbatim %}<a href="{{ baseurl }}/talkpoint/{{ talkpoint.id }}">{{ talkpoint.title }}</a>{% endverbatim %}</span>
+    <span>{{ trans('by', plugin)|lower }}&nbsp;{% verbatim %}{{ talkpoint.userfullname }}{% endverbatim %}</span>
+    <span class="right" ng-show="talkpoint.is_owner || canManage === 'true'">
+        <button ng-click="editT({talkpointid: talkpoint.id})">{{ trans('edit') }}</button>
+        <button ng-click="deleteT({talkpointid: talkpoint.id})">{{ trans('delete') }}</button>
+    </span>
+</div>

@@ -1,0 +1,4 @@
+{% extends 'talkpoint/base.twig' %}
+{% block main %}
+    <img src="{{ wwwroot ~ slug ~ path('servefile', {id: talkpoint.id}) }}" alt="{{ talkpoint.title }}" title="{{ talkpoint.title }}"/>
+{% endblock %}

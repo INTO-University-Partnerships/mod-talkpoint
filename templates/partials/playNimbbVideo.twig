@@ -1,0 +1,27 @@
+<div>
+
+    {# begin Flash player #}
+    <div class="nimbb-player-flash" ng-class="{hidden: playerType !== 'flash'}">
+        <object id="{% verbatim %}{{ unique }}{% endverbatim %}" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="320" height="240" codebase= "http://fpdownload.macromedia.com/get/flashplayer/current/swflash.cab">
+            <param name="movie" value="{% verbatim %}{{ init }}{% endverbatim %}" />
+            <param name="allowScriptAccess" value="always" />
+            <embed name="{% verbatim %}{{ unique }}{% endverbatim %}" ng-src="{% verbatim %}{{ init }}{% endverbatim %}" width="320" height="240" allowScriptAccess="always" pluginspage="http://www.adobe.com/go/getflashplayer" type="application/x-shockwave-flash">
+            </embed>
+        </object>
+    </div>
+    {# end Flash player #}
+
+    {# begin html5 player #}
+    <div class="nimbb-player-html5" ng-class="{hidden: playerType !== 'html5'}">
+        <video
+            id="html5"
+            width="320"
+            height="240"
+            ng-src="{% verbatim %}{{ init }}{% endverbatim %}"
+            poster="http://api.nimbb.com/Live/Thumbnail.aspx?guid={% verbatim %}{{ nimbbGuid }}{% endverbatim %}&key={% verbatim %}{{ publicKey }}{% endverbatim %}"
+            controls="controls"
+        />
+    </div>
+    {# end html5 player #}
+
+</div>

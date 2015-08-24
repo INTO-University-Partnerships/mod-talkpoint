@@ -1,0 +1,33 @@
+[Wed 18 Dec 2013 11:40:48 UTC] [info] instantiating backup controller 21403e31644e05dfe6d013a266427392
+[Wed 18 Dec 2013 11:40:48 UTC] [debug] setting controller status to 100
+[Wed 18 Dec 2013 11:40:48 UTC] [debug] loading controller plan
+[Wed 18 Dec 2013 11:40:48 UTC] [debug] setting controller status to 300
+[Wed 18 Dec 2013 11:40:48 UTC] [debug] applying plan defaults
+[Wed 18 Dec 2013 11:40:48 UTC] [debug] setting controller status to 400
+[Wed 18 Dec 2013 11:40:48 UTC] [info] checking plan security
+[Wed 18 Dec 2013 11:40:48 UTC] [debug] setting controller status to 500
+[Wed 18 Dec 2013 11:40:48 UTC] [info] checking plan security
+[Wed 18 Dec 2013 11:40:48 UTC] [info] checking plan security
+[Wed 18 Dec 2013 11:40:48 UTC] [info] checking plan security
+[Wed 18 Dec 2013 11:40:48 UTC] [debug] saving controller to db
+[Wed 18 Dec 2013 11:40:48 UTC] [debug] calculating controller checksum 25d0cbe6ff3d9489ff9269c75b0e89f8
+[Wed 18 Dec 2013 11:40:59 UTC] [debug] loading controller from db
+[Wed 18 Dec 2013 11:40:59 UTC] [info] checking plan security
+[Wed 18 Dec 2013 11:40:59 UTC] [info] checking plan security
+[Wed 18 Dec 2013 11:40:59 UTC] [info] checking plan security
+[Wed 18 Dec 2013 11:40:59 UTC] [debug] saving controller to db
+[Wed 18 Dec 2013 11:40:59 UTC] [debug] calculating controller checksum c74662f2f8003afbd513d0645ede8253
+[Wed 18 Dec 2013 11:41:02 UTC] [debug] loading controller from db
+[Wed 18 Dec 2013 11:41:02 UTC] [info] checking plan security
+[Wed 18 Dec 2013 11:41:02 UTC] [info] checking plan security
+[Wed 18 Dec 2013 11:41:02 UTC] [info] checking plan security
+[Wed 18 Dec 2013 11:41:02 UTC] [debug] saving controller to db
+[Wed 18 Dec 2013 11:41:02 UTC] [debug] calculating controller checksum c74662f2f8003afbd513d0645ede8253
+[Wed 18 Dec 2013 11:41:06 UTC] [debug] loading controller from db
+[Wed 18 Dec 2013 11:41:06 UTC] [info] checking plan security
+[Wed 18 Dec 2013 11:41:06 UTC] [info] checking plan security
+[Wed 18 Dec 2013 11:41:06 UTC] [debug] setting controller status to 700
+[Wed 18 Dec 2013 11:41:06 UTC] [debug] saving controller to db
+[Wed 18 Dec 2013 11:41:06 UTC] [debug] calculating controller checksum c19d98387f8dbe4f673cc564264059bb
+[Wed 18 Dec 2013 11:41:06 UTC] [debug] loading controller from db
+[Wed 18 Dec 2013 11:41:06 UTC] [debug] setting controller status to 800

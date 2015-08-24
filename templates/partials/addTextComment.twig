@@ -1,0 +1,10 @@
+<hr/>
+<label for="id_add_text_comment">{{ trans('yourcomment', plugin) }}&#58;</label>
+<input id="id_add_text_comment" type="text" ng-model="textcomment"/>
+<button ng-disabled="textcomment.length == 0" ng-click="addingTextComment = false; saveChanges({textcomment: textcomment, finalfeedback: finalfeedback})">{{ trans('savechanges') }}</button>
+<button ng-click="addingTextComment = false">{{ trans('cancel') }}</button>
+<div ng-show="canManage && !talkpointClosed">
+    <input type="checkbox" ng-model="finalfeedback"/>
+    <span>{{ trans('leavefinalfeedback', plugin) }}</span>
+</div>
+<hr/>

@@ -1,0 +1,104 @@
+{{ page('module', cm.id, wwwroot ~ slug ~ path('talkpoint', {id: talkpoint.id})) }}
+{{ css('/mod/talkpoint/static/css/talkpoints.css') }}
+{% block header_css %}{% endblock %}
+{% block header_script %}{% endblock %}
+{{ header()|raw }}
+<div ng-app="talkpointsApp" ng-controller="talkpointCtrl" ng-cloak>
+    <div>
+        <h3 ng-show="talkpoint">{% verbatim %}{{ talkpoint.title }} by {{ talkpoint.userfullname }}{% endverbatim %}</h3>
+        {% block main %}{% endblock %}
+    </div>
+    <div>
+        <h3>{{ trans('comments', plugin) }}</h3>
+        <div class="messages">
+            <div ng-show="talkpointClosed && canManage"><strong>{{ trans('talkpointclosed:admin', plugin) }}</strong></div>
+            <div ng-show="talkpointClosed && !canManage"><strong>{{ trans('talkpointclosed:user', plugin) }}</strong></div>
+            <div ng-show="comments.length == 0"><strong>{{ trans('nocomments', plugin) }}</strong></div>
+        </div>
+        <div>
+            <button ng-click="addingTextComment = true" ng-show="(!talkpointClosed || canManage) && !isGuest" ng-disabled="addingTextComment || addingMediaComment || isNimbbVideoPlaying">{{ trans('addtextcomment', plugin) }}</button>
+            <button ng-click="mediaType = 'webcam'; addingMediaComment = true" ng-show="(!talkpointClosed || canManage) && !isGuest" ng-disabled="addingTextComment || addingMediaComment || isNimbbVideoPlaying">{{ trans('addvideocomment', plugin) }}</button>
+            <button ng-click="mediaType = 'audio'; addingMediaComment = true" ng-show="(!talkpointClosed || canManage) && !isGuest" ng-disabled="addingTextComment || addingMediaComment || isNimbbVideoPlaying">{{ trans('addaudiocomment', plugin) }}</button>
+        </div>
+        <div>
+            {% verbatim %}
+                <add-text-comment ng-show="addingTextComment"
+                                  can-manage="{{ canManage }}"
+                                  talkpoint-closed="{{ talkpointClosed }}"
+                                  adding-text-comment="addingTextComment"
+                                  save-changes="postTextComment(textcomment, finalfeedback)">
+                </add-text-comment>
+                <add-media-comment media-type="mediaType"
+                                   ng-show="addingMediaComment"
+                                   can-manage="{{ canManage }}"
+                                   talkpoint-closed="{{ talkpointClosed }}"
+                                   adding-media-comment="addingMediaComment"
+                                   save-changes="postNimbbComment(guid, finalfeedback)"
+                                   cancel-changes="cancelChanges()"
+                                   nimbb-control="nimbbControl">
+                </add-media-comment>
+            {% endverbatim %}
+        </div>
+        <div class="talkpoint-comment-container">
+            <div ng-repeat="comment in comments" ng-cloak>
+                <div class="talkpoint-comment">
+                    <div ng-show="commentsExtra[comment.id].speechBubble" ng-bind="commentsExtra[comment.id].speechBubble" class="speech-bubble-common speech-bubble-text"></div>
+                    <play-nimbb-video
+                        ng-show="commentsExtra[comment.id].nimbbGuid"
+                        is-subject="false"
+                        commentid="{% verbatim %}{{ comment.id }}{% endverbatim %}"
+                        nimbb-guid="{% verbatim %}{{ comment.nimbbguidcomment }}{% endverbatim %}"
+                        nimbb-control="nimbbControl"
+                        nimbb-complete="closeComment(commentid, digest)"
+                        class="speech-bubble-common speech-bubble-video"
+                    >
+                    </play-nimbb-video>
+                    <a href="javascript:" ng-click="openComment(comment)" ng-bind-html="comment.userpicture"></a>
+                    <span class="info" ng-show="!commentsExtra[comment.id].editing">{{ trans('commentfrom', plugin) }}&nbsp;{% verbatim %}{{ comment.userfullname }}{% endverbatim %}&nbsp;{{ trans('on', plugin)|lower }}&nbsp;{% verbatim %}{{ comment.timecreated }}{% endverbatim %}</span>
+                    <span class="edit" ng-show="commentsExtra[comment.id].editing">
+                        <input type="text" ng-model="commentsExtra[comment.id].textcomment"/>
+                        <button ng-disabled="commentsExtra[comment.id].textcomment.length == 0" ng-click="putTextComment(comment)">{{ trans('savechanges') }}</button>
+                        <button ng-click="stopEdit(comment)">{{ trans('cancel') }}</button>
+                    </span>
+                    <span class="right">
+                        <button ng-show="(comment.is_owner || canManage) && comment.textcomment && (!talkpointClosed || canManage)" ng-disabled="commentsExtra[comment.id].editing || isNimbbVideoPlaying" ng-click="startEdit(comment)">{{ trans('edit') }}</button>
+                        <button ng-show="(comment.is_owner || canManage) && (!talkpointClosed || canManage)" ng-disabled="isNimbbVideoPlaying" ng-click="deleteComment(comment.id)">{{ trans('delete') }}</button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div>
+        <button ng-click="backToTalkpoints()" ng-disabled="isNimbbVideoPlaying">{{ trans('backtotalkpoints', plugin) }}</button>
+        <button ng-click="prevPage()" ng-disabled="prevPageDisabled()">{{ trans('previous') }}</button>
+        <span class="talkpoint-pagination">{{ trans('page', plugin) }}&nbsp;<span ng-bind="currentPage + 1"></span>&nbsp;<span>{{ trans('of', plugin)|lower }}</span>&nbsp;<span ng-bind="pageCount()"></span></span>
+        <button ng-click="nextPage()" ng-disabled="nextPageDisabled()">{{ trans('next') }}</button>
+    </div>
+</div>
+<script>
+    CONFIG = {
+        baseurl: '{{ baseurl }}',
+        api: '{{ api }}',
+        instanceid: {{ instance.id }},
+        talkpointid: {{ talkpoint.id }},
+        canManage: {{ can_manage ? 'true' : 'false' }},
+        isGuest: {{ is_guest ? 'true' : 'false' }},
+        talkpointClosed: {{ talkpoint.closed ? 'true' : 'false' }},
+        messages: {
+            'confirm': '{{ trans('confirm', plugin) }}'
+        },
+        forceHtml5Player: {{ nimbb_force_html5_player ? 'true' : 'false' }}
+    };
+</script>
+
+{# begin footer #}
+{% set footer_script %}
+    <script>if (typeof define === 'function') { window.g_define = define; define = undefined; }</script> {# undefine define :) thereby hiding RequireJS from all footer scripts #}
+    <script src="{{ bower_url }}angular/angular.min.js"></script>
+    <script src="{{ bower_url }}angular-sanitize/angular-sanitize.min.js"></script>
+    <script src="{{ wwwroot }}/mod/talkpoint/static/js/build/talkpoint.min.js"></script>
+    {% block footer_script %}{% endblock %}
+    <script>if (window.g_define) { define = window.g_define; delete window.g_define; }</script>
+{% endset %}
+{{ footer(footer_script)|raw }}
+{# end footer #}

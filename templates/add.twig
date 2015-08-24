@@ -1,0 +1,17 @@
+{{ page('module', cm.id, wwwroot ~ slug ~ path('add', {instanceid: instanceid})) }}
+{{ css('/mod/talkpoint/static/css/talkpoints.css') }}
+{{ header()|raw }}
+<form action="{{ wwwroot ~ slug ~ path('add', {instanceid: instanceid}) }}" class="form-horizontal" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="instanceid" value="{{ instanceid }}"/>
+    <input type="hidden" name="sesskey" value="{{ sesskey() }}"/>
+    {% include 'add_edit_common.twig' %}
+</form>
+
+{# begin footer #}
+{% set footer_script %}
+    <script src="{{ bower_url }}angular/angular.min.js"></script>
+    <script src="{{ bower_url }}angular-sanitize/angular-sanitize.min.js"></script>
+    <script src="{{ wwwroot }}/mod/talkpoint/static/js/build/talkpoint.min.js"></script>
+{% endset %}
+{{ footer(footer_script)|raw }}
+{# end footer #}

@@ -1,0 +1,19 @@
+{% extends 'talkpoint/base.twig' %}
+{% block header_css %}
+    {{ css('/mod/talkpoint/static/css/jplayer.blue.monday.css') }}
+{% endblock %}
+{% block header_script %}
+    {{ jquery() }}
+{% endblock %}
+{% block main %}
+    {% if has_videos_to_convert %}
+        <div class="alert alert-info">
+            <strong>{{ trans('videostoconvert1', plugin) }}</strong><br/>
+            <strong>{{ trans('videostoconvert2', plugin) }}</strong>
+        </div>
+    {% endif %}
+    <jplayer talkpointid="{{ talkpoint.id }}" title="{{ talkpoint.title }}" formats="{{ formats }}"/>
+{% endblock %}
+{% block footer_script %}
+    <script src="{{ wwwroot }}/mod/talkpoint/static/js/jplayer/jquery.jplayer.min.js"></script>
+{% endblock %}

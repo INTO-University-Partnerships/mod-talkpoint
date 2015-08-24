@@ -1,0 +1,92 @@
+span.right {
+    float: right;
+}
+
+.talkpoint-container {
+    height: 380px;
+    min-height: 380px;
+    margin: 15px 0;
+}
+
+.talkpoint-comment-container {
+    height: 270px;
+    min-height: 270px;
+    margin: 5px 0;
+}
+
+.talkpoint-comment {
+    margin: 0 0 5px 9px;
+    position: relative;
+}
+
+.talkpoint-comment span {
+    margin-left: 10px;
+}
+
+.talkpoint-comment span.info {
+    font-size: 0.9em;
+}
+
+.talkpoint-comment span.edit input[type="text"] {
+    width: 400px;
+}
+
+.talkpoint-pagination {
+    margin: 0 10px;
+}
+
+.messages {
+    margin: 10px 0;
+}
+
+.speech-bubble-common {
+    left: -67px;
+    position: absolute;
+    line-height: 20px;
+    padding: 10px;
+    font-size: 14px;
+    text-align: center;
+    color: #fff;
+    background: #000;
+    border: 4px solid #000;
+    border-radius: 5px;
+    text-shadow: rgba(0, 0, 0, 0.1) 1px 1px 1px;
+    box-shadow: rgba(0, 0, 0, 0.1) 1px 1px 2px 0px;
+}
+
+.speech-bubble-text {
+    width: auto;
+    min-height: 20px;
+    min-width: 155px;
+    max-width: 980px;
+    bottom: 60px;
+}
+
+.speech-bubble-video {
+    width: 320px;
+    height: 240px;
+    top: -278px;
+}
+
+.speech-bubble-common:after {
+    left: 78px;
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-width: 10px;
+    border-style: solid;
+    border-color: #000 transparent transparent transparent;
+}
+
+.speech-bubble-text:after {
+    bottom: -24px;
+}
+
+.speech-bubble-video:after {
+    top: 264px;
+}
+
+.controls button:first-of-type {
+    margin-left: 0px;
+}

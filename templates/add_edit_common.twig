@@ -1,0 +1,77 @@
+<div ng-app="talkpointsApp" ng-controller="talkpointsAddEditCtrl" ng-cloak>
+    <div class="control-group">
+        {{ form_label(form.title, trans('title', plugin), {'label_attr': {'class': 'control-label'}}) }}
+        <div class="controls">
+            {{ form_widget(form.title) }}
+        </div>
+        {{ form_errors(form.title) }}
+    </div>
+    <div class="control-group">
+        <div class="controls">
+            <button type="button" ng-disabled="mediaType == 'file'" ng-click="changeMediaType('file')">Add file</button>
+            <button type="button" ng-disabled="mediaType == 'webcam'" ng-click="changeMediaType('webcam')">Add webcam video</button>
+            <button type="button" ng-disabled="mediaType == 'audio'" ng-click="changeMediaType('audio')">Add audio</button>
+        </div>
+    </div>
+    <div class="control-group" ng-show="mediaType == 'file'">
+        {{ form_label(form.uploadedfile, trans('file'), {'label_attr': {'class': 'control-label'}}) }}
+        <div class="controls">
+            {{ form_widget(form.uploadedfile, {'attr': { 'ng-model': 'uploadedfile', 'class': 'file'} }) }}
+            {% if uploadedfile is defined %}
+                <a href="{{ wwwroot ~ slug ~ path('uploadedfile', {id: id}) }}"><span ng-bind="uploadedfile"></span></a>
+            {% endif %}
+        </div>
+        {{ form_errors(form.uploadedfile) }}
+    </div>
+    <div class="control-group" ng-show="mediaType == 'webcam' || mediaType == 'audio'">
+        <label class="control-label" ng-show="mediaType == 'webcam'">{{ trans('webcam', plugin) }}</label>
+        <label class="control-label" ng-show="mediaType == 'audio'">{{ trans('audio', plugin) }}</label>
+        <div class="controls">
+            {{ form_widget(form.nimbbguid, {'attr': {'ng-value': 'nimbbguid' }}) }}
+            {{ form_widget(form.mediatype, {'attr': {'ng-value': 'mediaType' }}) }}
+            <button type="button"
+                    ng-click="toggleCurrentRecording()"
+                    ng-disabled="toggleButtonDisabled"
+                    ng-bind="toggleButtonLabel"
+                    ng-show="nimbbguid"></button>
+            <play-media-comment main-video="true"
+                                ng-show="showCurrentRecording"
+                                nimbb-guid="{% verbatim %}{{ nimbbguid }}{% endverbatim %}"
+                                nimbb-control="nimbbControl"
+                                ng-if="nimbbguid">
+            </play-media-comment>
+            <add-media-comment ng-hide="showCurrentRecording"
+                               media-type="mediaType"
+                               adding-media-comment="addingMediaComment"
+                               save-changes="saveMedia(guid, finalfeedback)"
+                               cancel-changes="cancelChanges()"
+                               nimbb-control="nimbbControl">
+            </add-media-comment>
+        </div>
+        {{ form_errors(form.nimbbguid) }}
+    </div>
+    {{ form_errors(form) }}
+    <div class="form-actions">
+        <a href="{{ wwwroot ~ slug ~ path('byinstanceid', {id: instanceid}) }}">{{ trans('cancel') }}</a>
+        <button type="submit" class="btn-primary" ng-disabled="!nimbbguid && !uploadedfile">{{ trans('savechanges') }}</button>
+    </div>
+</div>
+<script>
+    CONFIG = {
+        baseurl: '{{ baseurl }}',
+        mediaType: '{% if mediaType is defined %}{{ mediaType }}{% endif %}',
+        uploadedfile: '{% if uploadedfile is defined %}{{ uploadedfile }}{% endif %}',
+        nimbbguid: '{% if nimbbguid is defined %}{{ nimbbguid }}{% endif %}',
+        messages: {
+            'confirm': '{{ trans('confirm', plugin) }}',
+            'confirmdeletefile': '{{ trans('confirmdeletefile', plugin) }}',
+            'submit': '{{ trans('submit', plugin) }}',
+            'webcam:showcurrent': '{{ trans('webcam:showcurrent', plugin) }}',
+            'webcam:recordnew': '{{ trans('webcam:recordnew', plugin) }}',
+            'webcam:saved': '{{ trans('webcam:saved', plugin) }}',
+            'audio:showcurrent': '{{ trans('audio:showcurrent', plugin) }}',
+            'audio:recordnew': '{{ trans('audio:recordnew', plugin) }}',
+            'audio:saved': '{{ trans('audio:saved', plugin) }}'
+        }
+    };
+</script>

@@ -1,0 +1,9 @@
+{% extends 'talkpoint/base.twig' %}
+{% block main %}
+    <play-nimbb-video
+        is-subject="true"
+        nimbb-guid="{{ talkpoint.nimbbguid }}"
+        nimbb-control="nimbbControl"
+    >
+    </play-nimbb-video>
+{% endblock %}

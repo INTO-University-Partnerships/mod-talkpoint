@@ -1,0 +1,66 @@
+{{ page('module', cm.id, wwwroot ~ slug ~ path('byinstanceid', {id: instance.id})) }}
+{{ css('/mod/talkpoint/static/css/talkpoints.css') }}
+{{ header()|raw }}
+
+<h2>{{ instance.name }}</h2>
+
+{% if instance.header is defined and instance.header is not empty %}
+    <div>
+        <div>{{ instance.header|raw }}</div>
+        <hr/>
+    </div>
+{% endif %}
+<div ng-app="talkpointsApp" ng-controller="talkpointsCtrl" ng-cloak>
+    <h3>{{ trans('modulenameplural', plugin) }}</h3>
+    <div class="messages">
+        <div ng-show="closed && canManage"><strong>{{ trans('activityclosed:admin', plugin) }}</strong></div>
+        <div ng-show="closed && !canManage"><strong>{{ trans('activityclosed:user', plugin) }}</strong></div>
+        <div ng-show="talkpoints.length == 0"><strong>{{ trans('notalkpoints', plugin) }}</strong></div>
+    </div>
+    <div class="talkpoint-container">
+        <div class="well" ng-repeat="talkpoint in talkpoints">
+            {% verbatim %}
+                <talkpoint-list-item talkpoint="talkpoint"
+                                     baseurl="{{ baseurl }}"
+                                     can-manage="{{ canManage }}"
+                                     edit-t="editTalkpoint(talkpoint.id)"
+                                     delete-t="deleteTalkpoint(talkpoint.id)">
+                </talkpoint-list-item>
+            {% endverbatim %}
+        </div>
+    </div>
+    <div>
+        <button ng-show="(!closed || canManage) && !isGuest" ng-click="addTalkpoint()">{{ trans('add') ~ ' ' ~ trans('modulename', plugin)|lower }}</button>
+        <button ng-click="prevPage()" ng-disabled="prevPageDisabled()">{{ trans('previous') }}</button>
+        <span class="talkpoint-pagination">{{ trans('page', plugin) }}&nbsp;<span ng-bind="currentPage + 1"></span>&nbsp;<span>{{ trans('of', plugin)|lower }}</span>&nbsp;<span ng-bind="pageCount()"></span></span>
+        <button ng-click="nextPage()" ng-disabled="nextPageDisabled()">{{ trans('next') }}</button>
+    </div>
+</div>
+{% if instance.footer is defined and instance.footer is not empty %}
+    <div>
+        <hr/>
+        <div>{{ instance.footer|raw }}</div>
+    </div>
+{% endif %}
+<script>
+    CONFIG = {
+        baseurl: '{{ baseurl }}',
+        api: '{{ api }}',
+        instanceid: {{ instance.id }},
+        canManage: {{ can_manage ? 'true' : 'false' }},
+        closed: {{ instance.closed ? 'true' : 'false' }},
+        isGuest: {{ is_guest ? 'true' : 'false' }},
+        messages: {
+            'confirm': '{{ trans('confirm', plugin) }}'
+        }
+    };
+</script>
+
+{# begin footer #}
+{% set footer_script %}
+    <script src="{{ bower_url }}angular/angular.min.js"></script>
+    <script src="{{ bower_url }}angular-sanitize/angular-sanitize.min.js"></script>
+    <script src="{{ wwwroot }}/mod/talkpoint/static/js/build/talkpoint.min.js"></script>
+{% endset %}
+{{ footer(footer_script)|raw }}
+{# end footer #}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<activity id="3" moduleid="31" modulename="talkpoint" contextid="61">
+  <talkpoint id="3">
+    <name>Talkpoint 001</name>
+    <header>&lt;p&gt;&lt;a href="$@COURSEVIEWBYID*2@$"&gt;Course home header&lt;/a&gt;&lt;/p&gt;</header>
+    <footer>&lt;p&gt;&lt;a href="$@COURSEVIEWBYID*2@$"&gt;Course home footer&lt;/a&gt;&lt;/p&gt;</footer>
+    <closed>1</closed>
+    <timecreated>1387297198</timecreated>
+    <timemodified>1387298097</timemodified>
+  </talkpoint>
+</activity>
