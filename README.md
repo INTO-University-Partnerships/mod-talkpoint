@@ -53,6 +53,12 @@ Install [Composer](https://getcomposer.org/download/) if it isn't already.
     cd ..
     php admin/cli/upgrade.php
 
+## Apache rewrite rule
+
+Add the following Apache rewrite rule:
+
+    RewriteRule ^(/talkpoints) /mod/talkpoint/bootstrap.php?slug=$1 [QSA,L]
+
 ## Bower components
 
     cd mod/talkpoint
