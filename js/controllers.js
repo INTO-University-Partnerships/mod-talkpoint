@@ -358,10 +358,48 @@ app.controller('talkpointsAddEditCtrl', [
             $scope.setButtonLabel();
         };
 
+        $scope.showConfirmationMessageBeforeChangingMediaType = function () {
+            // adding a new talkpoint (config.mediaType is empty)
+            if (!config.mediaType) {
+                // show a confirmation if a file has been uploaded or a webcam or audio has been recorded
+                return !!$scope.uploadedfile || !!$scope.nimbbguid;
+            }
+
+            // editing an existing talkpoint (currently on the 'file' media type)
+            if ($scope.mediaType === 'file') {
+                if (config.mediaType === 'file') {
+                    return !!$scope.uploadedfile && $scope.uploadedfile !== config.uploadedfile;
+                }
+                return !!$scope.uploadedfile;
+            }
+
+            // editing an existing talkpoint (currently on the 'webcam' media type)
+            if ($scope.mediaType === 'webcam') {
+                if (config.mediaType === 'webcam') {
+                    return !!$scope.nimbbguid && $scope.nimbbguid !== config.nimbbguid;
+                }
+                return !!$scope.nimbbguid;
+            }
+
+            // editing an existing talkpoint (currently on the 'audio' media type)
+            if ($scope.mediaType === 'audio') {
+                if (config.mediaType === 'audio') {
+                    return !!$scope.nimbbguid && $scope.nimbbguid !== config.nimbbguid;
+                }
+                return !!$scope.nimbbguid;
+            }
+
+            // nothing has been uploaded or recorded that'll be lost when changing media type
+            return false;
+        };
+
         $scope.changeMediaType = function (type) {
-            // don't show confirm when there wasn't anything uploaded before
-            if ($scope.mediaType && ($scope.nimbbguid || $scope.uploadedfile)) {
-                if (!$window.confirm(config.messages.confirmdeletefile)) {
+            var showConf = $scope.showConfirmationMessageBeforeChangingMediaType();
+            if (!(showConf === true || showConf === false)) {
+                throw new Error('expected a boolean');
+            }
+            if (showConf) {
+                if (!$window.confirm(config.messages[$scope.mediaType + ':confirmlose'])) {
                     return false;
                 }
             }

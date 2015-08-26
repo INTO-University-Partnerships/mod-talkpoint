@@ -12,12 +12,14 @@ describe('talkpointsAddEditCtrl', function () {
             mediaType: '',
             messages: {
                 'confirm': 'Are you sure?',
-                'confirmdeletefile': 'The file will not be saved. Are you sure you want to change?',
+                'file:confirmlose': 'The file you uploaded will be lost. Continue anyway?',
                 'submit': 'You must upload a file or record a webcam video!',
                 'webcam:showcurrent': 'Show current webcam recording',
                 'webcam:recordnew': 'Record new video',
+                'webcam:confirmlose': 'The webcam you recorded will be lost. Continue anyway?',
                 'audio:showcurrent': 'Listen to current audio recording',
-                'audio:recordnew': 'Record new audio'
+                'audio:recordnew': 'Record new audio',
+                'audio:confirmlose': 'The audio you recorded will be lost. Continue anyway?'
             }
         };
         windowMock = {
@@ -34,7 +36,7 @@ describe('talkpointsAddEditCtrl', function () {
     }));
 
     describe('method saveMedia', function () {
-        it('should exists', function () {
+        it('should exist', function () {
             expect(angular.isFunction(scope.saveMedia)).toBeTruthy();
         });
 
@@ -53,7 +55,7 @@ describe('talkpointsAddEditCtrl', function () {
     });
 
     describe('method toggleCurrentRecording', function () {
-        it('should exists', function () {
+        it('should exist', function () {
             expect(angular.isFunction(scope.toggleCurrentRecording)).toBeTruthy();
         });
 
@@ -79,45 +81,207 @@ describe('talkpointsAddEditCtrl', function () {
     });
 
     describe('method changeMediaType', function () {
-        it('should exists', function () {
+        var spy,
+            pickRandomMediaTypeExcept;
+
+        beforeEach(function () {
+            spy = spyOn(windowMock, 'confirm');
+            pickRandomMediaTypeExcept = function (type) {
+                var a = ['file', 'webcam', 'audio'];
+                var index = a.indexOf(type);
+                if (index === -1) {
+                    return null;
+                }
+                a.splice(index, 1);
+                return a[Math.random() < 0.5 ? 0 : 1];
+            };
+        });
+
+        it('should exist', function () {
             expect(angular.isFunction(scope.changeMediaType)).toBeTruthy();
         });
 
-        it('should trigger window confirm if media gets changed', function () {
-            scope.mediaType = 'webcam';
-            scope.nimbbguid = 'ABC123';
-            spyOn(windowMock, 'confirm');
-            scope.changeMediaType('file');
-            expect(windowMock.confirm).toHaveBeenCalledWith(configMock.messages.confirmdeletefile);
+        describe('when changing media type on a new talkpoint', function () {
+            it('should show a confirmation after having uploaded a file', function () {
+                var currentMediaType = 'file';
+                scope.mediaType = currentMediaType;
+                scope.uploadedfile = 'file.png';
+                scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
+                expect(windowMock.confirm).toHaveBeenCalledWith(configMock.messages[currentMediaType + ':confirmlose']);
+            });
+
+            it('should show a confirmation after having recorded webcam', function () {
+                var currentMediaType = 'webcam';
+                scope.mediaType = currentMediaType;
+                scope.nimbbguid = 'ABC123';
+                scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
+                expect(windowMock.confirm).toHaveBeenCalledWith(configMock.messages[currentMediaType + ':confirmlose']);
+            });
+
+            it('should show a confirmation after having recorded audio', function () {
+                var currentMediaType = 'audio';
+                scope.mediaType = currentMediaType;
+                scope.nimbbguid = 'ABC123';
+                scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
+                expect(windowMock.confirm).toHaveBeenCalledWith(configMock.messages[currentMediaType + ':confirmlose']);
+            });
+
+            it('should not show a confirmation if no file has been uploaded', function () {
+                var currentMediaType = 'file';
+                scope.mediaType = currentMediaType;
+                scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
+                expect(windowMock.confirm).not.toHaveBeenCalled();
+            });
+
+            it('should not show a confirmation if no webcam has been recorded', function () {
+                var currentMediaType = 'webcam';
+                scope.mediaType = currentMediaType;
+                scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
+                expect(windowMock.confirm).not.toHaveBeenCalled();
+            });
+
+            it('should not show a confirmation if no audio has been recorded', function () {
+                var currentMediaType = 'audio';
+                scope.mediaType = currentMediaType;
+                scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
+                expect(windowMock.confirm).not.toHaveBeenCalled();
+            });
+        });
+
+        describe('when changing media type on an existing talkpoint', function () {
+            it('should show a confirmation after having uploaded a (new) file', function () {
+                var currentMediaType = 'file';
+                configMock.mediaType = scope.mediaType = currentMediaType;
+                configMock.uploadedfile = 'old.png';
+                scope.uploadedfile = 'new.png';
+                scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
+                expect(windowMock.confirm).toHaveBeenCalledWith(configMock.messages[currentMediaType + ':confirmlose']);
+            });
+
+            it('should show a confirmation after having uploaded a file (when the original media type was anything other than "file")', function () {
+                var currentMediaType = 'file';
+                configMock.mediaType = 'webcam';
+                configMock.nimbbguid = 'OLD123';
+                scope.mediaType = currentMediaType;
+                scope.uploadedfile = 'new.png';
+                scope.changeMediaType(pickRandomMediaTypeExcept('currentMediaType'));
+                expect(windowMock.confirm).toHaveBeenCalledWith(configMock.messages[currentMediaType + ':confirmlose']);
+            });
+
+            it('should show a confirmation after having recorded a (new) webcam', function () {
+                var currentMediaType = 'webcam';
+                configMock.mediaType = scope.mediaType = currentMediaType;
+                configMock.nimbbguid = 'OLD123';
+                scope.nimbbguid = 'NEW123';
+                scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
+                expect(windowMock.confirm).toHaveBeenCalledWith(configMock.messages[currentMediaType + ':confirmlose']);
+            });
+
+            it('should show a confirmation after having recorded a webcam (when the original media type was anything other than "webcam")', function () {
+                var currentMediaType = 'webcam';
+                configMock.mediaType = 'file';
+                configMock.uploadedfile = 'old.png';
+                scope.mediaType = currentMediaType;
+                scope.nimbbguid = 'ABC123';
+                scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
+                expect(windowMock.confirm).toHaveBeenCalledWith(configMock.messages[currentMediaType + ':confirmlose']);
+            });
+
+            it('should show a confirmation after having recorded (new) audio', function () {
+                var currentMediaType = 'audio';
+                configMock.mediaType = scope.mediaType = currentMediaType;
+                configMock.nimbbguid = 'OLD123';
+                scope.nimbbguid = 'NEW123';
+                scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
+                expect(windowMock.confirm).toHaveBeenCalledWith(configMock.messages[currentMediaType + ':confirmlose']);
+            });
+
+            it('should show a confirmation after having recorded audio (when the original media type was anything other than "audio")', function () {
+                var currentMediaType = 'audio';
+                configMock.mediaType = 'webcam';
+                configMock.nimbbguid = 'OLDWEBCAM123';
+                scope.mediaType = currentMediaType;
+                scope.nimbbguid = 'NEWAUDIO123';
+                scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
+                expect(windowMock.confirm).toHaveBeenCalledWith(configMock.messages[currentMediaType + ':confirmlose']);
+            });
+
+            it('should not show a confirmation if no (new) file has been uploaded', function () {
+                var currentMediaType = 'file';
+                configMock.mediaType = scope.mediaType = currentMediaType;
+                configMock.uploadedfile = scope.uploadedfile = 'new.png';
+                scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
+                expect(windowMock.confirm).not.toHaveBeenCalled();
+            });
+
+            it('should not show a confirmation if no (new) file has been uploaded (when the original media type was anything other than "file")', function () {
+                var currentMediaType = 'file';
+                configMock.mediaType = 'webcam';
+                configMock.nimbbguid = 'OLD123';
+                scope.mediaType = currentMediaType;
+                scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
+                expect(windowMock.confirm).not.toHaveBeenCalled();
+            });
+
+            it('should not show a confirmation if no (new) webcam has been recorded', function () {
+                var currentMediaType = 'webcam';
+                configMock.mediaType = scope.mediaType = currentMediaType;
+                configMock.nimbbguid = scope.nimbbguid = 'ABC123';
+                scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
+                expect(windowMock.confirm).not.toHaveBeenCalled();
+            });
+
+            it('should not show a confirmation if no (new) webcam has been recorded (when the original media type was anything other than "webcam")', function () {
+                var currentMediaType = 'webcam';
+                configMock.mediaType = 'file';
+                configMock.uploadedfile = 'old.png';
+                scope.mediaType = currentMediaType;
+                scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
+                expect(windowMock.confirm).not.toHaveBeenCalled();
+            });
+
+            it('should not show a confirmation if no (new) audio has been recorded', function () {
+                var currentMediaType = 'audio';
+                configMock.mediaType = scope.mediaType = currentMediaType;
+                configMock.nimbbguid = scope.nimbbguid = 'ABC123';
+                scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
+                expect(windowMock.confirm).not.toHaveBeenCalled();
+            });
+
+            it('should not show a confirmation if no (new) audio has been recorded (when the original media type was anything other than "audio")', function () {
+                var currentMediaType = 'audio';
+                configMock.mediaType = 'file';
+                configMock.uploadedfile = 'old.png';
+                scope.mediaType = currentMediaType;
+                scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
+                expect(windowMock.confirm).not.toHaveBeenCalled();
+            });
         });
 
         it('should empty nimbbguid and uploadedfile', function () {
-            scope.mediaType = 'webcam';
+            spy.and.returnValue(true);
+            configMock.mediaType = scope.mediaType = 'webcam';
             scope.nimbbguid = 'ABC123';
             scope.uploadedfile = '';
-            spyOn(windowMock, 'confirm').and.returnValue(true);
             scope.changeMediaType('file');
-            expect(windowMock.confirm).toHaveBeenCalled();
             expect(scope.nimbbguid).toBe('');
             expect(scope.uploadedfile).toBe('');
         });
 
-        it('should change mediatype', function () {
-            scope.mediaType = 'webcam';
+        it('should change media type', function () {
+            spy.and.returnValue(true);
+            configMock.mediaType = scope.mediaType = 'webcam';
             scope.nimbbguid = 'ABC123';
-            spyOn(windowMock, 'confirm').and.returnValue(true);
             scope.changeMediaType('file');
-            expect(windowMock.confirm).toHaveBeenCalled();
             expect(scope.mediaType).toBe('file');
         });
 
         it('should set showCurrentRecording to false', function () {
-            scope.mediaType = 'webcam';
+            spy.and.returnValue(true);
+            configMock.mediaType = scope.mediaType = 'webcam';
             scope.nimbbguid = 'ABC123';
             scope.showCurrentRecording = true;
-            spyOn(windowMock, 'confirm').and.returnValue(true);
             scope.changeMediaType('file');
-            expect(windowMock.confirm).toHaveBeenCalled();
             expect(scope.showCurrentRecording).toBeFalsy();
         });
     });
