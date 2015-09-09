@@ -63,17 +63,21 @@
         uploadedfile: '{% if uploadedfile is defined %}{{ uploadedfile }}{% endif %}',
         nimbbguid: '{% if nimbbguid is defined %}{{ nimbbguid }}{% endif %}',
         messages: {
-            'confirm': '{{ trans('confirm', plugin) }}',
-            'submit': '{{ trans('submit', plugin) }}',
-            'file:confirmlose': '{{ trans('file:confirmlose', plugin) }}',
-            'webcam:showcurrent': '{{ trans('webcam:showcurrent', plugin) }}',
-            'webcam:recordnew': '{{ trans('webcam:recordnew', plugin) }}',
-            'webcam:saved': '{{ trans('webcam:saved', plugin) }}',
-            'webcam:confirmlose': '{{ trans('webcam:confirmlose', plugin) }}',
-            'audio:showcurrent': '{{ trans('audio:showcurrent', plugin) }}',
-            'audio:recordnew': '{{ trans('audio:recordnew', plugin) }}',
-            'audio:saved': '{{ trans('audio:saved', plugin) }}',
-            'audio:confirmlose': '{{ trans('audio:confirmlose', plugin) }}'
+            {% for m in [
+                'confirm',
+                'submit',
+                'file:confirmlose',
+                'webcam:showcurrent',
+                'webcam:recordnew',
+                'webcam:saved',
+                'webcam:confirmlose',
+                'audio:showcurrent',
+                'audio:recordnew',
+                'audio:saved',
+                'audio:confirmlose'
+                ] %}
+            '{{ m }}': '{{ trans(m, plugin) }}'{% if not loop.last %},{% endif %}
+            {% endfor %}
         }
     };
 </script>
