@@ -7,9 +7,11 @@ describe('talkpointsAddEditCtrl', function () {
 
     beforeEach(inject(function ($rootScope, $controller) {
         scope = $rootScope.$new();
+        scope.file = {};
         configMock = {
             baseurl: 'http://foobar.com/talkpoints',
             mediaType: '',
+            title: 'My new talkpoint',
             messages: {
                 'confirm': 'Are you sure?',
                 'file:confirmlose': 'The file you uploaded will be lost. Continue anyway?',
@@ -106,6 +108,7 @@ describe('talkpointsAddEditCtrl', function () {
                 var currentMediaType = 'file';
                 scope.mediaType = currentMediaType;
                 scope.uploadedfile = 'file.png';
+                scope.title = 'My new talkpoint';
                 scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
                 expect(windowMock.confirm).toHaveBeenCalledWith(configMock.messages[currentMediaType + ':confirmlose']);
             });
@@ -114,6 +117,7 @@ describe('talkpointsAddEditCtrl', function () {
                 var currentMediaType = 'webcam';
                 scope.mediaType = currentMediaType;
                 scope.nimbbguid = 'ABC123';
+                scope.title = 'My new talkpoint';
                 scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
                 expect(windowMock.confirm).toHaveBeenCalledWith(configMock.messages[currentMediaType + ':confirmlose']);
             });
@@ -122,6 +126,7 @@ describe('talkpointsAddEditCtrl', function () {
                 var currentMediaType = 'audio';
                 scope.mediaType = currentMediaType;
                 scope.nimbbguid = 'ABC123';
+                scope.title = 'My new talkpoint';
                 scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
                 expect(windowMock.confirm).toHaveBeenCalledWith(configMock.messages[currentMediaType + ':confirmlose']);
             });
@@ -136,6 +141,7 @@ describe('talkpointsAddEditCtrl', function () {
             it('should not show a confirmation if no webcam has been recorded', function () {
                 var currentMediaType = 'webcam';
                 scope.mediaType = currentMediaType;
+                scope.title = 'My new talkpoint';
                 scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
                 expect(windowMock.confirm).not.toHaveBeenCalled();
             });
@@ -143,6 +149,7 @@ describe('talkpointsAddEditCtrl', function () {
             it('should not show a confirmation if no audio has been recorded', function () {
                 var currentMediaType = 'audio';
                 scope.mediaType = currentMediaType;
+                scope.title = 'My new talkpoint';
                 scope.changeMediaType(pickRandomMediaTypeExcept(currentMediaType));
                 expect(windowMock.confirm).not.toHaveBeenCalled();
             });
@@ -284,6 +291,26 @@ describe('talkpointsAddEditCtrl', function () {
             scope.changeMediaType('file');
             expect(scope.showCurrentRecording).toBeFalsy();
         });
+
+        it('should empty uploadError', function () {
+            spy.and.returnValue(true);
+            configMock.mediaType = scope.mediaType = 'webcam';
+            scope.nimbbguid = 'ABC123';
+            scope.showCurrentRecording = true;
+            scope.uploadError = 'Some random error';
+            scope.changeMediaType('file');
+            expect(scope.uploadError).toBe('');
+        });
+
+        it('should set uploadProgress to 0', function () {
+            spy.and.returnValue(true);
+            configMock.mediaType = scope.mediaType = 'webcam';
+            scope.nimbbguid = 'ABC123';
+            scope.showCurrentRecording = true;
+            scope.uploadProgress = 100;
+            scope.changeMediaType('file');
+            expect(scope.uploadProgress).toBe(0);
+        });
     });
 
     describe('Nimbb Control', function () {
@@ -312,4 +339,55 @@ describe('talkpointsAddEditCtrl', function () {
             });
         });
     });
+
+    describe('method cancelChanges', function () {
+        var spy;
+
+        beforeEach(function () {
+            spy = spyOn(scope, 'changeMediaType');
+        });
+
+        it('should exist', function () {
+            expect(angular.isFunction(scope.cancelChanges)).toBeTruthy();
+        });
+
+        it('should call changeMediaType method with config.mediaType', function () {
+            scope.cancelChanges();
+            expect(spy).toHaveBeenCalledWith(configMock.mediaType);
+        });
+
+        it('should change scope.nimbbguid to config.nimbbguid', function () {
+            configMock.nimbbguid = 'ABC123';
+            scope.nimbbguid = 'DEF456';
+            scope.cancelChanges();
+            expect(scope.nimbbguid).toBe('ABC123');
+        });
+
+        it('should change scope.uploadedfile to config.uploadedfile', function () {
+            configMock.uploadedfile = 'file.jpg';
+            scope.uploadedfile = 'anotherfile.pdf';
+            scope.cancelChanges();
+            expect(scope.uploadedfile).toBe('file.jpg');
+        });
+
+    });
+
+    describe('method isCancelButtonDisabled', function () {
+
+        it('should exist', function () {
+            expect(angular.isFunction(scope.isCancelButtonDisabled)).toBeTruthy();
+        });
+
+        it('should return true when config.mediaType equals scope.mediaType', function () {
+            configMock.mediaType = scope.mediaType = 'file';
+            expect(scope.isCancelButtonDisabled()).toBeTruthy();
+        });
+
+        it('should return false when config.mediaType does not equal scope.mediaType', function () {
+            configMock.mediaType = 'audio';
+            scope.mediaType = 'file';
+            expect(scope.isCancelButtonDisabled()).toBeFalsy();
+        });
+    })
+
 });

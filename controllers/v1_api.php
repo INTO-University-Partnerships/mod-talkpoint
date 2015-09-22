@@ -111,6 +111,52 @@ $controller->delete('/talkpoint/{instanceid}/{talkpointid}', function ($instance
 ->assert('instanceid', '\d+')
 ->assert('talkpointid', '\d+');
 
+// save file on a talkpoint
+$controller->post('/talkpoint/{instanceid}/upload', function (Request $request, $instanceid) use ($app) {
+    global $CFG, $USER;
+
+    // require course login
+    list($course, $cm) = $app['get_course_and_course_module']($instanceid);
+    $app['require_course_login']($course, $cm);
+
+    // ensure the user isn't the guest user
+    if (isguestuser()) {
+        return $app->json(get_string('jsonapi:talkpointasguestdenied', $app['plugin']), 400);
+    }
+
+    // load the talkpoint
+    require_once __DIR__ . '/../models/talkpoint_model.php';
+    $talkpoint_model = new talkpoint_model();
+
+    if (($id = $request->request->get('id')) != null) {
+        // get module context
+        $context = context_module::instance($cm->id);
+        $talkpoint = $talkpoint_model->get($id);
+        // check that the logged in user can either manage activities or is the owner of the talkpoint
+        if (!$app['has_capability']('moodle/course:manageactivities', $context) && ($USER->id != $talkpoint['userid'])) {
+            return $app->json(get_string('jsonapi:notowneroftalkpoint', $app['plugin']), 403);
+        }
+    }
+
+    // request the file
+    $file = $request->files->get('file');
+    $error = $app['validator']->validateValue($file, new Symfony\Component\Validator\Constraints\File($app['file_constraints']));
+    if (count($error) > 0) {
+        return $app->json($error[0]->getMessage(), 500);
+    }
+
+    if (!empty($file)) {
+        // move the uploaded file to a temporary location
+        $uploadpath = $talkpoint_model->get_upload_path() . '/' . $instanceid . '/temp/';
+        $file->move($uploadpath, $file->getClientOriginalName());
+    }
+
+    return $app->json(array(
+        'uploadedfile' => $file->getClientOriginalName()
+    ));
+})
+->assert('instanceid', '\d+');
+
 // get all comments
 $controller->get('/talkpoint/{instanceid}/{talkpointid}/comment', function (Request $request, $instanceid, $talkpointid) use ($app) {
     global $DB, $USER, $OUTPUT;

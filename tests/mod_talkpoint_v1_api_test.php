@@ -1160,4 +1160,199 @@ class mod_talkpoint_v1_api_test extends advanced_testcase {
         $this->assertEquals(get_string('jsonapi:notownerofcomment', $this->_app['plugin']), json_decode($client->getResponse()->getContent()));
     }
 
+    /**
+     * test uploading a file for a new talkpoint
+     */
+    public function test_upload_file_new_talkpoint() {
+        global $CFG;
+
+        $this->setAdminUser();
+
+        // create a course
+        $course = $this->getDataGenerator()->create_course();
+
+        // create a course module
+        $talkpoint = $this->getDataGenerator()->create_module('talkpoint', array(
+            'name' => 'Talkpoint activity name',
+            'course' => $course->id,
+            'closed' => 0,
+        ));
+
+        copy(__DIR__ . '/video/Chrome_ImF.mp4', '/tmp/Chrome_ImF.mp4');
+
+        // create a dummy file
+        $uploadedfile = new Symfony\Component\HttpFoundation\File\UploadedFile(
+            '/tmp/Chrome_ImF.mp4',
+            'Chrome_ImF.mp4',
+            'video/mp4'
+        );
+
+        // delete an existing comment
+        $client = new Client($this->_app);
+        $client->request('POST', '/api/v1/talkpoint/' . $talkpoint->id . '/upload', array('title' => 'title'), array('file' => $uploadedfile), array(
+            'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
+        ));
+        $this->assertEquals('application/json', $client->getResponse()->headers->get('Content-Type'));
+        $content = json_decode($client->getResponse()->getContent());
+
+        $this->assertFileExists($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/temp/' . $content->uploadedfile);
+    }
+
+    /**
+     * test uploading file with wrong type returns an error message
+     */
+    public function test_upload_file_wrong_file_type() {
+
+        $this->setAdminUser();
+        
+        // create a course
+        $course = $this->getDataGenerator()->create_course();
+
+        // create a course module
+        $talkpoint = $this->getDataGenerator()->create_module('talkpoint', array(
+            'name' => 'Talkpoint activity name',
+            'course' => $course->id,
+            'closed' => 0,
+        ));
+
+        // spit a dummy file
+        file_put_contents('/tmp/mod_talkpoint_web_test.txt', 'dummy contents');
+
+        // create a dummy file
+        $uploadedfile = new Symfony\Component\HttpFoundation\File\UploadedFile(
+            '/tmp/mod_talkpoint_web_test.txt',
+            'mod_talkpoint_web_test.txt',
+            'text/plain'
+        );
+
+        // delete an existing comment
+        $client = new Client($this->_app);
+        $client->request('POST', '/api/v1/talkpoint/' . $talkpoint->id . '/upload', array(), array('file' => $uploadedfile), array(
+            'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
+        ));
+        $this->assertTrue($client->getResponse()->isServerError());
+    }
+
+    /**
+     * test adding file to non existing talkpoint
+     * @expectedException dml_missing_record_exception
+     */
+    public function test_upload_file_non_existing_talkpoint() {
+
+        $this->setAdminUser();
+
+        // spit a dummy file
+        file_put_contents('/tmp/mod_talkpoint_web_test.txt', 'dummy contents');
+
+        // create a dummy file
+        $uploadedfile = new Symfony\Component\HttpFoundation\File\UploadedFile(
+            '/tmp/mod_talkpoint_web_test.txt',
+            'mod_talkpoint_web_test.txt',
+            'text/plain'
+        );
+
+        // delete an existing comment
+        $client = new Client($this->_app);
+        $client->request('POST', '/api/v1/talkpoint/999/upload', array(), array('file' => $uploadedfile), array(
+            'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
+        ));
+        $this->assertTrue($client->getResponse()->isServerError());
+    }
+
+    /**
+     * test uploading file the user is not the owner of the Talkpoint
+     */
+    public function test_upload_file_not_owner_of_talkpoint() {
+        global $DB;
+
+        // create a user
+        $user = $this->getDataGenerator()->create_user();
+
+        // login as user
+        $this->setUser($user);
+
+        // create a course
+        $course = $this->getDataGenerator()->create_course();
+
+        // enrol the user on the course
+        $this->getDataGenerator()->enrol_user($user->id, $course->id, $DB->get_field('role', 'id', array(
+            'shortname' => 'student',
+        )));
+
+        // create a course module
+        $talkpoint = $this->getDataGenerator()->create_module('talkpoint', array(
+            'name' => 'Talkpoint activity name',
+            'course' => $course->id,
+            'closed' => 0
+        ));
+
+        $this->loadDataSet($this->createArrayDataSet(array(
+            'talkpoint_talkpoint' => array(
+                array('id', 'instanceid', 'userid', 'title', 'uploadedfile', 'nimbbguid', 'mediatype', 'closed', 'timecreated', 'timemodified'),
+                array(1, $talkpoint->id, 2, 'Talkpoint 001', '001.mp4', null, 'file', 0, time(), time())
+            )
+        )));
+
+        // spit a dummy file
+        file_put_contents('/tmp/mod_talkpoint_web_test.txt', 'dummy contents');
+
+        // create a dummy file
+        $uploadedfile = new Symfony\Component\HttpFoundation\File\UploadedFile(
+            '/tmp/mod_talkpoint_web_test.txt',
+            'mod_talkpoint_web_test.txt',
+            'text/plain'
+        );
+
+        // delete an existing comment
+        $client = new Client($this->_app);
+        $client->request('POST', '/api/v1/talkpoint/' . $talkpoint->id . '/upload', array('id' => 1), array('file' => $uploadedfile), array(
+            'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
+        ));
+
+        $this->assertEquals(get_string('jsonapi:notowneroftalkpoint', $this->_app['plugin']), json_decode($client->getResponse()->getContent()));
+    }
+
+    /**
+     * test uploading file as guest
+     */
+    public function test_file_upload_as_guest() {
+        global $DB;
+
+        // login as guest
+        $this->setGuestUser();
+
+        // create a course
+        $course = $this->getDataGenerator()->create_course();
+
+        // set the instance of the 'guest' enrolment plugin to enabled
+        $DB->set_field('enrol', 'status', ENROL_INSTANCE_ENABLED, array(
+            'courseid' => $course->id,
+            'enrol' => 'guest',
+        ));
+
+        // create a course module
+        $talkpoint = $this->getDataGenerator()->create_module('talkpoint', array(
+            'course' => $course->id,
+            'closed' => 0,
+        ));
+
+        // spit a dummy file
+        file_put_contents('/tmp/mod_talkpoint_web_test.txt', 'dummy contents');
+
+        // create a dummy file
+        $uploadedfile = new Symfony\Component\HttpFoundation\File\UploadedFile(
+            '/tmp/mod_talkpoint_web_test.txt',
+            'mod_talkpoint_web_test.txt',
+            'text/plain'
+        );
+
+        // request the page
+        $client = new Client($this->_app);
+        $client->request('POST', '/api/v1/talkpoint/' . $talkpoint->id . '/upload', array(), array('file' => $uploadedfile), array(
+            'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
+        ));
+
+        $this->assertTrue($client->getResponse()->isClientError());
+    }
+
 }

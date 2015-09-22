@@ -1,6 +1,6 @@
 'use strict';
 
-var app = angular.module('talkpointsApp.controllers', []);
+var app = angular.module('talkpointsApp.controllers', ['ngFileUpload']);
 
 app.controller('talkpointCtrl', [
     '$scope', '$timeout', '$window', 'talkpointsSrv', 'commentsSrv', 'CONFIG',
@@ -328,13 +328,16 @@ app.controller('talkpointsCtrl', [
 ]);
 
 app.controller('talkpointsAddEditCtrl', [
-    '$scope', '$window', 'CONFIG',
-    function ($scope, $window, config) {
+    '$scope', '$window', 'CONFIG', 'Upload',
+    function ($scope, $window, config, Upload) {
         $scope.nimbbControl = {};
         $scope.nimbbguid = config.nimbbguid;
         $scope.mediaType = config.mediaType;
         $scope.uploadedfile = config.uploadedfile;
+        $scope.uploadProgress = 0;
+        $scope.uploadError = '';
         $scope.showCurrentRecording = !!$scope.nimbbguid;
+        $scope.temporary = false;
 
         $scope.setButtonLabel = function () {
             if ($scope.mediaType === 'webcam' || $scope.mediaType === 'audio') {
@@ -343,19 +346,47 @@ app.controller('talkpointsAddEditCtrl', [
         };
         $scope.setButtonLabel();
 
+        $scope.uploadFile = function (file) {
+            $scope.uploadError = '';
+            $scope.uploadProgres = 0;
+            Upload.upload({
+                url: config.baseurl + config.api + '/talkpoint/' + config.instanceid + '/upload',
+                fields: {
+                    id: config.id
+                },
+                file: file
+            }).progress(function (e) {
+                $scope.uploadProgress = parseInt(100.0 * e.loaded / e.total) + '%';
+            }).success(function (data) {
+                if (data.uploadedfile) {
+                    $scope.uploadedfile = data.uploadedfile;
+                    $scope.temporary = true;
+                }
+            }).error(function (data) {
+                $scope.uploadError = data;
+            });
+        };
+
         $scope.saveMedia = function (guid) {
             $scope.nimbbguid = guid;
             $scope.$broadcast('nimbbchanged', $scope.nimbbguid);
             $scope.$digest();
         };
 
+        // reset back to original media
         $scope.cancelChanges = function () {
-            $scope.changeMediaType('');
+            $scope.changeMediaType(config.mediaType);
+            $scope.nimbbguid = config.nimbbguid;
+            $scope.uploadedfile = config.uploadedfile;
         };
 
         $scope.toggleCurrentRecording = function () {
             $scope.showCurrentRecording = !$scope.showCurrentRecording;
             $scope.setButtonLabel();
+        };
+
+        $scope.isCancelButtonDisabled = function () {
+            return $scope.mediaType === config.mediaType;
         };
 
         $scope.showConfirmationMessageBeforeChangingMediaType = function () {
@@ -405,9 +436,15 @@ app.controller('talkpointsAddEditCtrl', [
             }
             $scope.nimbbguid = '';
             $scope.uploadedfile = '';
+            $scope.uploadProgress = 0;
+            $scope.uploadError = '';
             $scope.mediaType = type;
             $scope.showCurrentRecording = false;
             $scope.setButtonLabel();
+        };
+
+        $scope.backToTalkpoints = function () {
+            $window.location.href = config.baseurl + '/' + config.instanceid;
         };
 
         $window.Nimbb_initCompleted = function (idPlayer) {

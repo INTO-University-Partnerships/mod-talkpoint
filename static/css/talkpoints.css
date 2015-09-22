@@ -88,5 +88,27 @@ span.right {
 }
 
 .controls button:first-of-type {
-    margin-left: 0px;
+    margin-left: 0;
+}
+
+.controls button {
+    margin-bottom: 0;
+}
+
+.controls .progress {
+    margin-top: 10px;
+}
+
+.error {
+    color: red;
+}
+
+.form-horizontal .form-actions {
+    padding-left: 260px;
+}
+
+.uploadedfile img,
+.uploadedfile video,
+.uploadedfile audio {
+    max-width: 400px;
 }

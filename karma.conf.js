@@ -14,6 +14,7 @@ module.exports = function (config) {
             'static/js/components/jquery/dist/jquery.min.js',
             'static/js/components/angular/angular.min.js',
             'static/js/components/angular-mocks/angular-mocks.js',
+            'static/js/components/ng-file-upload/ng-file-upload.min.js',
             './js/angular-app.js',
             './js/controllers.js',
             './js/services.js',

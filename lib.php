@@ -83,3 +83,19 @@ function talkpoint_supports($feature) {
     }
     return $support[$feature];
 }
+
+/**
+ * given a file path, return its type (one of 'image', 'video' or 'audio')
+ * @param string $path
+ * @return string
+ */
+function get_file_type($path) {
+    if (!file_exists($path)) {
+        return '';
+    }
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mimetype = finfo_file($finfo, $path);
+    finfo_close($finfo);
+    preg_match('(image|video|audio)', $mimetype, $match);
+    return empty($match) ? '' : $match[0];
+}

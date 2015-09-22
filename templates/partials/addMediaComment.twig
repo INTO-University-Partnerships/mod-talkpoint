@@ -11,7 +11,7 @@
     <button type="button" ng-click="toggleRecording()" ng-bind="toggleButtonLabel" ng-disabled="toggleButtonDisabled"></button>
     <button type="button" ng-click="saveMedia()" ng-disabled="!readyToSave" ng-show="mediaType == 'webcam'">{{ trans('savewebcam', plugin) }}</button>
     <button type="button" ng-click="saveMedia()" ng-disabled="!readyToSave" ng-show="mediaType == 'audio'">{{ trans('saveaudio', plugin) }}</button>
-    <button type="button" ng-click="shutdown()">{{ trans('cancel') }}</button>
+    <button type="button" ng-click="shutdown()" ng-disabled="isCancelButtonDisabled()">{{ trans('cancel') }}</button>
     <div ng-show="canManage && !talkpointClosed">
         <input type="checkbox" ng-model="finalfeedback"/>
         <span>{{ trans('leavefinalfeedback', plugin) }}</span>

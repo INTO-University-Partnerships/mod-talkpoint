@@ -451,26 +451,20 @@ class mod_talkpoint_web_test extends advanced_testcase {
         global $CFG, $DB;
         list(, , $talkpoint) = $this->_setup_single_user_in_single_talkpoint();
 
+        // spit a dummy existing file
+        check_dir_exists($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/temp/');
+        file_put_contents($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/temp/mod_talkpoint_web_test.txt', 'dummy contents');
+
         // request the page
         $client = new Client($this->_app);
         $crawler = $client->request('GET', '/' . $talkpoint->id . '/add');
         $this->assertTrue($client->getResponse()->isOk());
 
-        // spit a dummy file
-        file_put_contents('/tmp/mod_talkpoint_web_test.txt', 'dummy contents');
-
-        // create a dummy file
-        $uploadedfile = new Symfony\Component\HttpFoundation\File\UploadedFile(
-            '/tmp/mod_talkpoint_web_test.txt',
-            'mod_talkpoint_web_test.txt',
-            'text/plain'
-        );
-
         // post some data
-        $form = $crawler->selectButton(get_string('savechanges'))->form();
+        $form = $crawler->selectButton(get_string('viewyourtalkpoint', $this->_app['plugin']))->form();
         $client->submit($form, array(
             'form[title]' => 'Title 001',
-            'form[uploadedfile]' => $uploadedfile,
+            'form[uploadedfile]' => 'mod_talkpoint_web_test.txt',
             'form[mediatype]' => 'file',
         ));
 
@@ -479,9 +473,6 @@ class mod_talkpoint_web_test extends advanced_testcase {
             'id' => $created->id,
         ));
         $this->assertTrue($client->getResponse()->isRedirect($url));
-
-        // ensure the new file exists in the expected location
-        $this->assertStringEqualsFile($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/' . $created->id . '/mod_talkpoint_web_test.txt', 'dummy contents');
     }
 
     /**
@@ -572,24 +563,16 @@ class mod_talkpoint_web_test extends advanced_testcase {
         $this->assertTrue($client->getResponse()->isOk());
 
         // spit a dummy existing file
-        check_dir_exists($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/1');
+        check_dir_exists($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/temp/');
+        check_dir_exists($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/1/');
         file_put_contents($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/1/mod_talkpoint_web_test.txt', 'dummy contents');
-
-        // spit a dummy uploaded file
-        file_put_contents('/tmp/mod_talkpoint_web_test_2.txt', 'dummy contents');
-
-        // create a dummy file
-        $uploadedfile = new Symfony\Component\HttpFoundation\File\UploadedFile(
-            '/tmp/mod_talkpoint_web_test_2.txt',
-            'mod_talkpoint_web_test_2.txt',
-            'text/plain'
-        );
+        file_put_contents($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/temp/mod_talkpoint_web_test_2.txt', 'dummy contents');
 
         // post some data
-        $form = $crawler->selectButton(get_string('savechanges'))->form();
+        $form = $crawler->selectButton(get_string('viewyourtalkpoint', $this->_app['plugin']))->form();
         $client->submit($form, array(
             'form[title]' => 'Talkpoint 001a',
-            'form[uploadedfile]' => $uploadedfile,
+            'form[uploadedfile]' => 'mod_talkpoint_web_test_2.txt',
             'form[mediatype]' => 'file',
         ));
         $url = $CFG->wwwroot . SLUG . $this->_app['url_generator']->generate('talkpoint', array(
@@ -680,7 +663,7 @@ class mod_talkpoint_web_test extends advanced_testcase {
         file_put_contents($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/1/mod_talkpoint_web_test.txt', 'dummy contents');
 
         // post some data
-        $form = $crawler->selectButton(get_string('savechanges'))->form();
+        $form = $crawler->selectButton(get_string('viewyourtalkpoint', $this->_app['plugin']))->form();
         $client->submit($form, array(
             'form[title]' => 'Talkpoint 001a',
             'form[mediatype]' => 'file',
@@ -695,6 +678,69 @@ class mod_talkpoint_web_test extends advanced_testcase {
 
         // ensure the old file still exists in the expected location
         $this->assertStringEqualsFile($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/1/mod_talkpoint_web_test.txt', 'dummy contents');
+    }
+
+    /**
+     * test that when editing a current Talkpoint with a file returns the filetype of that file
+     */
+    public function test_edit_existing_talkpoint_uploaded_file_returns_correct_filetype1() {
+        global $CFG;
+        list($user, , $talkpoint) = $this->_setup_single_user_in_single_talkpoint();
+
+        // current time
+        $now = time();
+
+        // create a talkpoint
+        $this->loadDataSet($this->createArrayDataSet(array(
+            'talkpoint_talkpoint' => array(
+                array('id', 'instanceid', 'userid', 'title', 'uploadedfile', 'nimbbguid', 'mediatype', 'closed', 'timecreated', 'timemodified'),
+                array(1, $talkpoint->id, $user->id, 'Talkpoint 001', 'foo.mp4', null, 'file', 0, $now, $now),
+            ),
+        )));
+
+
+        check_dir_exists($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/1');
+        copy(__DIR__ . '/video/Chrome_ImF.mp4', $CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/1/foo.mp4');
+
+        // request the page
+        $client = new Client($this->_app);
+        $client->request('GET', '/' . $talkpoint->id . '/edit/1');
+        $this->assertTrue($client->getResponse()->isOk());
+
+        $filepath = $CFG->wwwroot . '/uploadedfile/1';
+        $this->assertRegExp("<video.*ng-show=\"true\".*src=\"$filepath\".*controls>", $client->getResponse()->getContent());
+    }
+
+    /**
+     * test that when editing a current Talkpoint with a file returns the filetype of that file
+     */
+    public function test_edit_existing_talkpoint_uploaded_file_returns_correct_filetype2() {
+        global $CFG;
+        list($user, , $talkpoint) = $this->_setup_single_user_in_single_talkpoint();
+
+        // current time
+        $now = time();
+
+        // create a talkpoint
+        $this->loadDataSet($this->createArrayDataSet(array(
+            'talkpoint_talkpoint' => array(
+                array('id', 'instanceid', 'userid', 'title', 'uploadedfile', 'nimbbguid', 'mediatype', 'closed', 'timecreated', 'timemodified'),
+                array(1, $talkpoint->id, $user->id, 'Talkpoint 001', 'mod_talkpoint_web_test.txt', null, 'file', 0, $now, $now),
+            ),
+        )));
+
+        // request the page
+        $client = new Client($this->_app);
+        $client->request('GET', '/' . $talkpoint->id . '/edit/1');
+        $this->assertTrue($client->getResponse()->isOk());
+
+        // spit a dummy existing file
+        check_dir_exists($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/1');
+        file_put_contents($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/1/mod_talkpoint_web_test.txt', 'dummy contents');
+
+        $filepath = $CFG->wwwroot . '/uploadedfile/1';
+        $this->assertRegExp("<a.*ng-show=\"true\".*href=\"$filepath\".*>", $client->getResponse()->getContent());
+
     }
 
     /**
@@ -873,26 +919,20 @@ class mod_talkpoint_web_test extends advanced_testcase {
             ),
         );
 
+        check_dir_exists($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/temp/');
+        check_dir_exists($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/1');
+        copy(__DIR__ . '/video/Chrome_ImF.mp4', $CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/temp/foo.mp4');
+
         // request the page
         $client = new Client($this->_app);
         $crawler = $client->request('GET', '/' . $talkpoint->id . '/add');
         $this->assertTrue($client->getResponse()->isOk());
 
-        // spit a dummy existing file
-        copy(__DIR__ . '/video/Chrome_ImF.mp4', '/tmp/foo.mp4');
-
-        // create a dummy file
-        $uploadedfile = new Symfony\Component\HttpFoundation\File\UploadedFile(
-            '/tmp/foo.mp4',
-            'foo.mp4',
-            'video/mp4'
-        );
-
         // post some data
-        $form = $crawler->selectButton(get_string('savechanges'))->form();
+        $form = $crawler->selectButton(get_string('viewyourtalkpoint', $this->_app['plugin']))->form();
         $client->submit($form, array(
             'form[title]' => 'Title 001',
-            'form[uploadedfile]' => $uploadedfile,
+            'form[uploadedfile]' => 'foo.mp4',
             'form[mediatype]' => 'file',
         ));
 
@@ -908,7 +948,7 @@ class mod_talkpoint_web_test extends advanced_testcase {
         $this->assertTrue($DB->record_exists('talkpoint_talkpoint', [
             'id' => $created->id,
             'title' => 'Title 001',
-            'uploadedfile' => $uploadedfile->getClientOriginalName(),
+            'uploadedfile' => 'foo.mp4',
             'nimbbguid' => null,
             'mediatype' => 'file',
         ]));
@@ -930,26 +970,20 @@ class mod_talkpoint_web_test extends advanced_testcase {
             ),
         );
 
+        check_dir_exists($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/temp/');
+        check_dir_exists($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/1');
+        copy(__DIR__ . '/video/Chrome_ImF.ogv', $CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/temp/foo.ogv');
+
         // request the page
         $client = new Client($this->_app);
         $crawler = $client->request('GET', '/' . $talkpoint->id . '/add');
         $this->assertTrue($client->getResponse()->isOk());
 
-        // spit a dummy existing file
-        copy(__DIR__ . '/video/Chrome_ImF.ogv', '/tmp/foo.ogv');
-
-        // create a dummy file
-        $uploadedfile = new Symfony\Component\HttpFoundation\File\UploadedFile(
-            '/tmp/foo.ogv',
-            'foo.ogv',
-            'application/ogv'
-        );
-
         // post some data
-        $form = $crawler->selectButton(get_string('savechanges'))->form();
+        $form = $crawler->selectButton(get_string('viewyourtalkpoint', $this->_app['plugin']))->form();
         $client->submit($form, array(
             'form[title]' => 'Title 001',
-            'form[uploadedfile]' => $uploadedfile,
+            'form[uploadedfile]' => 'foo.ogv',
             'form[mediatype]' => 'file',
         ));
         $created = $DB->get_record('talkpoint_talkpoint', array('instanceid' => $talkpoint->id));
@@ -972,7 +1006,7 @@ class mod_talkpoint_web_test extends advanced_testcase {
         $this->assertTrue($DB->record_exists('talkpoint_talkpoint', [
             'id' => $created->id,
             'title' => 'Title 001',
-            'uploadedfile' => $uploadedfile->getClientOriginalName(),
+            'uploadedfile' => 'foo.ogv',
             'nimbbguid' => null,
             'mediatype' => 'file',
         ]));
@@ -995,26 +1029,20 @@ class mod_talkpoint_web_test extends advanced_testcase {
             ),
         );
 
+        check_dir_exists($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/temp/');
+        check_dir_exists($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/1');
+        copy(__DIR__ . '/video/Chrome_ImF.webm', $CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/temp/foo.webm');
+
         // request the page
         $client = new Client($this->_app);
         $crawler = $client->request('GET', '/' . $talkpoint->id . '/add');
         $this->assertTrue($client->getResponse()->isOk());
 
-        // spit a dummy existing file
-        copy(__DIR__ . '/video/Chrome_ImF.webm', '/tmp/foo.webm');
-
-        // create a dummy file
-        $uploadedfile = new Symfony\Component\HttpFoundation\File\UploadedFile(
-            '/tmp/foo.webm',
-            'foo.webm',
-            'video/webm'
-        );
-
         // post some data
-        $form = $crawler->selectButton(get_string('savechanges'))->form();
+        $form = $crawler->selectButton(get_string('viewyourtalkpoint', $this->_app['plugin']))->form();
         $client->submit($form, array(
             'form[title]' => 'Title 001',
-            'form[uploadedfile]' => $uploadedfile,
+            'form[uploadedfile]' => 'foo.webm',
             'form[mediatype]' => 'file',
         ));
         $created = $DB->get_record('talkpoint_talkpoint', array('instanceid' => $talkpoint->id));
@@ -1037,7 +1065,7 @@ class mod_talkpoint_web_test extends advanced_testcase {
         $this->assertTrue($DB->record_exists('talkpoint_talkpoint', [
             'id' => $created->id,
             'title' => 'Title 001',
-            'uploadedfile' => $uploadedfile->getClientOriginalName(),
+            'uploadedfile' => 'foo.webm',
             'nimbbguid' => null,
             'mediatype' => 'file',
         ]));
@@ -1056,7 +1084,7 @@ class mod_talkpoint_web_test extends advanced_testcase {
         $this->assertTrue($client->getResponse()->isOk());
 
         // post some data
-        $form = $crawler->selectButton(get_string('savechanges'))->form();
+        $form = $crawler->selectButton(get_string('viewyourtalkpoint', $this->_app['plugin']))->form();
         $client->submit($form, array(
             'form[title]' => 'Title 001',
             'form[nimbbguid]' => 'ABC123',
@@ -1089,7 +1117,7 @@ class mod_talkpoint_web_test extends advanced_testcase {
         $this->assertTrue($client->getResponse()->isOk());
 
         // post some data
-        $form = $crawler->selectButton(get_string('savechanges'))->form();
+        $form = $crawler->selectButton(get_string('viewyourtalkpoint', $this->_app['plugin']))->form();
         $client->submit($form, array(
             'form[title]' => 'Title 001',
             'form[nimbbguid]' => 'ABC123',
@@ -1107,6 +1135,22 @@ class mod_talkpoint_web_test extends advanced_testcase {
             'nimbbguid' => 'ABC123',
             'mediatype' => 'audio',
         ]));
+    }
+
+    /**
+     * tests the route that lets you download a temporaryly uploaded file
+     */
+    public function test_temp_uploaded_route() {
+        global $CFG;
+        list(, , $talkpoint) = $this->_setup_single_user_in_single_talkpoint();
+
+        check_dir_exists($CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/temp/');
+        copy(__DIR__ . '/video/Chrome_ImF.mp4', $CFG->dataroot . '/into/mod_talkpoint/' . $talkpoint->id . '/temp/Chrome_ImF.mp4');
+
+        // request the file
+        $client = new Client($this->_app);
+        $client->request('GET', '/tempuploaded/' . $talkpoint->id . '/Chrome_ImF.mp4');
+        $this->assertTrue($client->getResponse()->isOk());
     }
 
 }

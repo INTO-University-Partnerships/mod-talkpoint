@@ -208,12 +208,7 @@ $controller->match('/{instanceid}/add', function (Request $request, $instanceid)
                 'max' => 100,
             )),
         ))
-        ->add('uploadedfile', 'file', array(
-            'label' => get_string('file'),
-            'data' => '',
-            'required' => false,
-            'constraints' => new Symfony\Component\Validator\Constraints\File($app['file_constraints']),
-        ))
+        ->add('uploadedfile', 'hidden')
         ->add('nimbbguid', 'hidden')
         ->add('mediatype', 'hidden')
         ->getForm();
@@ -226,16 +221,6 @@ $controller->match('/{instanceid}/add', function (Request $request, $instanceid)
         require_sesskey();
         $form->bind($request);
 
-        // get files
-        $files = $request->files->get($form->getName());
-
-        // if both a file and a nimbbguid is uploaded
-        if (isset($files['uploadedfile']) && $form['nimbbguid']->getData()) {
-            $form->addError(new FormError(get_string('bothmedianotallowed', $app['plugin'])));
-        } else {
-            $mediaType = $form->get('mediatype')->getData();
-        }
-
         if ($form->isValid()) {
             $data = $form->getData();
 
@@ -244,26 +229,32 @@ $controller->match('/{instanceid}/add', function (Request $request, $instanceid)
             $data['userid'] = $USER->id;
             $data['closed'] = false;
 
-            if (!empty($files['uploadedfile'])) {
-                $data['uploadedfile'] = $files['uploadedfile']->getClientOriginalName();
-            }
-
             // create talkpoint model and save the talkpoint
             require_once __DIR__ . '/../models/talkpoint_model.php';
             $talkpoint_model = new talkpoint_model();
             $data = $talkpoint_model->save($data, $app['now']());
 
-            if (!empty($files['uploadedfile'])) {
-                // move the uploaded file to its permanent location (now we know the new talkpoint id)
+            if (!empty($data['uploadedfile'])) {
+                // remove existing files
                 $uploadpath = $talkpoint_model->get_upload_path() . '/' . $instanceid . '/' . $data['id'];
-                $files['uploadedfile']->move($uploadpath, $files['uploadedfile']->getClientOriginalName());
+                check_dir_exists($uploadpath);
+
+                // move the uploaded file to its permanent location
+                $uploadpath_temp = $talkpoint_model->get_upload_path() . '/' . $instanceid . '/temp';
+                if (file_exists($uploadpath_temp . '/' . $data['uploadedfile'])) {
+                    rename($uploadpath_temp . '/' . $data['uploadedfile'], $uploadpath . '/' . $data['uploadedfile']);
+                }
+
+                // empty 'temp' folder
+                $talkpoint_model->clean_tempupload_path($uploadpath_temp);
+
                 $app['video_converter']->queue_convert_non_m4v_to_m4v(
                     $uploadpath,
                     $data['id']
                 );
 
                 // if the uploaded file is an image, resize it
-                $app['image_resizer']->resize($uploadpath, $files['uploadedfile']->getClientOriginalName());
+                $app['image_resizer']->resize($uploadpath, $data['uploadedfile']);
             }
 
             // redirect to the new talkpoint itself
@@ -326,11 +317,7 @@ $controller->match('/{instanceid}/edit/{id}', function (Request $request, $insta
             )),
             'data' => $talkpoint['title'],
         ))
-        ->add('uploadedfile', 'file', array(
-            'label' => get_string('file'),
-            'required' => false,
-            'constraints' => new Symfony\Component\Validator\Constraints\File($app['file_constraints']),
-        ))
+        ->add('uploadedfile', 'hidden')
         ->add('nimbbguid', 'hidden')
         ->add('mediatype', 'hidden')
         ->getForm();
@@ -340,39 +327,40 @@ $controller->match('/{instanceid}/edit/{id}', function (Request $request, $insta
         require_sesskey();
         $form->bind($request);
 
-        // get files
-        $files = $request->files->get($form->getName());
-
-        // if both a file and a nimbbguid is uploaded
-        if (isset($files['uploadedfile']) && $form['nimbbguid']->getData()) {
-            $form->addError(new FormError(get_string('bothmedianotallowed', $app['plugin'])));
-        };
-
         if ($form->isValid()) {
             $data = $form->getData();
 
             // fill in the blanks
             $data['instanceid'] = $instanceid;
             $data['id'] = $id;
-            if (isset($files['uploadedfile'])) {
+
+            if (isset($data['uploadedfile'])
+                && $data['uploadedfile'] !== $talkpoint['uploadedfile']) {
+
                 // remove existing files
                 $uploadpath = $talkpoint_model->get_upload_path() . '/' . $instanceid . '/' . $id;
                 $app['video_converter']->clean_upload_path($uploadpath);
 
                 // move the uploaded file to its permanent location
-                $data['uploadedfile'] = $files['uploadedfile']->getClientOriginalName();
-                $files['uploadedfile']->move($uploadpath, $files['uploadedfile']->getClientOriginalName());
+                $uploadpath_temp = $talkpoint_model->get_upload_path() . '/' . $instanceid . '/temp';
+                if (file_exists($uploadpath_temp . '/' . $data['uploadedfile'])) {
+                    rename($uploadpath_temp . '/' . $data['uploadedfile'], $uploadpath . '/' . $data['uploadedfile']);
+                }
+
+                // empty 'temp' folder
+                $talkpoint_model->clean_tempupload_path($uploadpath_temp);
+
                 $app['video_converter']->queue_convert_non_m4v_to_m4v(
                     $uploadpath,
                     $data['id']
                 );
 
                 // if the uploaded file is an image, resize it
-                $app['image_resizer']->resize($uploadpath, $files['uploadedfile']->getClientOriginalName());
+                $app['image_resizer']->resize($uploadpath, $data['uploadedfile']);
             }
 
             // if no new file was uploaded and also no nimbb was recorded, keep the original file.
-            if (empty($data['nimbbguid']) && !isset($files['uploadedfile'])) {
+            if (empty($data['nimbbguid']) && !isset($data['uploadedfile'])) {
                 $data['uploadedfile'] = $talkpoint['uploadedfile'];
             }
 
@@ -392,6 +380,11 @@ $controller->match('/{instanceid}/edit/{id}', function (Request $request, $insta
         get_string('editinga', 'moodle', get_string('pluginname', $app['plugin']))
     );
 
+    if ($talkpoint['uploadedfile']) {
+        $uploadpath = $talkpoint_model->get_upload_path() . '/' . $talkpoint['instanceid'] . '/' . $id;
+        $filetype = get_file_type($uploadpath . '/' . $talkpoint['uploadedfile']);
+    }
+
     // render
     return $app['twig']->render('edit.twig', array(
         'baseurl' => $CFG->wwwroot . SLUG,
@@ -403,6 +396,7 @@ $controller->match('/{instanceid}/edit/{id}', function (Request $request, $insta
         'nimbbguid' => $talkpoint['nimbbguid'],
         'mediaType' => $talkpoint['mediatype'],
         'uploadedfile' => $talkpoint['uploadedfile'],
+        'filetype' => empty($filetype) ? '' : $filetype,
         'sesskey' => $USER->sesskey,
     ));
 })
@@ -496,6 +490,36 @@ $app->get('/uploadedfile/{id}', function ($id) use ($app) {
 })
 ->bind('uploadedfile')
 ->assert('id', '\d+');
+
+// download temp file
+$app->get('/tempuploaded/{instanceid}/{file}', function ($instanceid, $file) use ($app) {
+    global $CFG;
+
+    // require course login
+    list($course, $cm) = $app['get_course_and_course_module']($instanceid);
+    $app['require_course_login']($course, $cm);
+
+    // ensure the user isn't the guest user
+    if (isguestuser()) {
+        return $app->redirect($CFG->wwwroot . SLUG . $app['url_generator']->generate('byinstanceid', array(
+            'id' => $instanceid,
+        )));
+    }
+
+    // load the talkpoint
+    require_once __DIR__ . '/../models/talkpoint_model.php';
+    $talkpoint_model = new talkpoint_model();
+
+    $uploadpath = $talkpoint_model->get_upload_path() . '/' . $instanceid . '/temp/';
+    if (!file_exists($uploadpath . $file)) {
+        return new Response(get_string('storedfilecannotread', 'error'), 404);
+    }
+
+    // send the file
+    $splFileInfo = new SplFileInfo($uploadpath . $file);
+    return $app->sendFile($splFileInfo);
+})
+->assert('instanceid', '\d+');
 
 // return the controller
 return $controller;

@@ -121,4 +121,40 @@ class mod_talkpoint_lib_test extends advanced_testcase {
         }
     }
 
+    /**
+     * tests getting file type for text files
+     */
+    public function test_get_file_type_text() {
+        check_dir_exists($this->_upload_path);
+        file_put_contents($this->_upload_path . '/foo.txt', 'whatever');
+        $this->assertEquals('', get_file_type($this->_upload_path . '/foo.txt'));
+    }
+
+    /**
+     * tests getting file type for video
+     */
+    public function test_get_file_type_video() {
+        check_dir_exists($this->_upload_path);
+        copy(__DIR__ . '/video/Chrome_ImF.webm', $this->_upload_path . '/foo.webm');
+        $this->assertEquals('video', get_file_type($this->_upload_path . '/foo.webm'));
+    }
+
+    /**
+     * tests getting file type for audio
+     */
+    public function test_get_file_type_audio() {
+        check_dir_exists($this->_upload_path);
+        copy(__DIR__ . '/audio/TSP-01-Cro_magnon_man.mp3', $this->_upload_path . '/foo.mp3');
+        $this->assertEquals('audio', get_file_type($this->_upload_path . '/foo.mp3'));
+    }
+
+    /**
+     * tests getting file type for image
+     */
+    public function test_get_file_type_image() {
+        check_dir_exists($this->_upload_path);
+        copy(__DIR__ . '/img/dancer180x139.jpg', $this->_upload_path . '/foo.jpg');
+        $this->assertEquals('image', get_file_type($this->_upload_path . '/foo.jpg'));
+    }
+
 }

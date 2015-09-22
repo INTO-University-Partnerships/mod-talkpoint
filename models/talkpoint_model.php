@@ -182,6 +182,20 @@ SQL;
     }
 
     /**
+     * @param string $path
+     */
+    public function clean_tempupload_path($path) {
+        F\each(F\filter(scandir($path), function ($file) use ($path) {
+            if ($file === '.' || $file === '..') {
+                return false;
+            }
+            return is_file($path . '/' . $file);
+        }), function ($file) use ($path) {
+            unlink($path . '/' . $file);
+        });
+    }
+
+    /**
      * @param integer $instanceid
      * @return array
      */

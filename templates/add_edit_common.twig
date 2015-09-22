@@ -16,12 +16,39 @@
     <div class="control-group" ng-show="mediaType == 'file'">
         {{ form_label(form.uploadedfile, trans('file'), {'label_attr': {'class': 'control-label'}}) }}
         <div class="controls">
-            {{ form_widget(form.uploadedfile, {'attr': { 'ng-model': 'uploadedfile', 'class': 'file'} }) }}
-            {% if uploadedfile is defined %}
-                <a href="{{ wwwroot ~ slug ~ path('uploadedfile', {id: id}) }}"><span ng-bind="uploadedfile"></span></a>
-            {% endif %}
+            {{ form_widget(form.uploadedfile, {'attr': {'ng-model': 'uploadedfile', 'ng-value': 'uploadedfile' }}) }}
+            <hr/>
+            <div>
+                <div class="uploadedfile">
+                {# file when EDITing a Talkpoint #}
+                {% if filetype is defined %}
+                    {% set filepath =  wwwroot ~ slug ~ path('uploadedfile', {id: id}) %}
+                    <div ng-show="!temporary && uploadedfile">
+                        <img ng-show="{{ filetype == 'image' ? 'true' : 'false' }}" src="{{ filepath }}"/>
+                        <audio ng-show="{{ filetype == 'audio' ? 'true' : 'false' }}" src="{{ filepath }}" controls></audio>
+                        <video ng-show="{{ filetype == 'video' ? 'true' : 'false' }}" src="{{ filepath }}" controls></video>
+                        <a ng-show="{{ filetype == ''  ? 'true' : 'false' }}" href="{{ filepath }}" target="_blank">{{ trans('viewcurrentfile', plugin) }}</a>
+                    </div>
+                {% endif %}
+                    {# file when adding a new file to either a new or an existing Talkpoint #}
+                    <div ng-show="temporary">
+                        <img ngf-src="file">
+                        <video ngf-src="file" controls></video>
+                        <audio ngf-src="file" controls></audio>
+                    </div>
+                </div>
+                <input type="file" ng-model="file" ngf-select="uploadFile($file)" ng-required="uploadedfile == '' && mediaType == 'file'">
+                <button type="button" ng-click="cancelChanges()" ng-disabled="isCancelButtonDisabled()">{{ trans('cancel') }}</button>
+                <div class="clearfix"></div>
+                <div class="progress" ng-show="uploadProgress != 0">
+                    <div class="bar" style="width: {% verbatim %}{{ uploadProgress }}{% endverbatim %}">
+                        {% verbatim %}{{ uploadProgress }}{% endverbatim %}
+                    </div>
+                </div>
+                <div ng-show="uploadError" class="error">{% verbatim %}{{ uploadError }}{% endverbatim %}</div>
+            </div>
+            <hr/>
         </div>
-        {{ form_errors(form.uploadedfile) }}
     </div>
     <div class="control-group" ng-show="mediaType == 'webcam' || mediaType == 'audio'">
         <label class="control-label" ng-show="mediaType == 'webcam'">{{ trans('webcam', plugin) }}</label>
@@ -49,20 +76,24 @@
                 adding-media-comment="addingMediaComment"
                 save-changes="saveMedia(guid, finalfeedback)"
                 cancel-changes="cancelChanges()"
-                nimbb-control="nimbbControl">
+                nimbb-control="nimbbControl"
+                is-cancel-button-disabled="isCancelButtonDisabled">
             </add-media-comment>
         </div>
         {{ form_errors(form.nimbbguid) }}
     </div>
     {{ form_errors(form) }}
     <div class="form-actions">
-        <a href="{{ wwwroot ~ slug ~ path('byinstanceid', {id: instanceid}) }}">{{ trans('cancel') }}</a>
-        <button type="submit" class="btn-primary" ng-disabled="!nimbbguid && !uploadedfile">{{ trans('savechanges') }}</button>
+        <button ng-click="backToTalkpoints()" class="btn-primary" type="button">{{ trans('backtotalkpoints', plugin) }}</button>
+        <button class="btn-primary" ng-disabled="!nimbbguid && !uploadedfile">{{ trans('viewyourtalkpoint', plugin) }}</button>
     </div>
 </div>
 <script>
     CONFIG = {
         baseurl: '{{ baseurl }}',
+        instanceid: '{{ instanceid }}',
+        id: '{% if id is defined %}{{ id }}{% endif %}',
+        api: '{{ api }}',
         mediaType: '{% if mediaType is defined %}{{ mediaType }}{% endif %}',
         uploadedfile: '{% if uploadedfile is defined %}{{ uploadedfile }}{% endif %}',
         nimbbguid: '{% if nimbbguid is defined %}{{ nimbbguid }}{% endif %}',

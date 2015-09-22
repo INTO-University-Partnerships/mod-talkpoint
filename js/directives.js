@@ -89,7 +89,8 @@ app.directive('addMediaComment', ['NIMBB_SWF_URL', 'NIMBB_PUBLIC_KEY', 'CONFIG',
                 saveChanges: '&',
                 cancelChanges: '&',
                 nimbbControl: '=',
-                mediaType: '='
+                mediaType: '=',
+                isCancelButtonDisabled: '='
             },
             link: function (scope, element, attrs) {
                 attrs.$observe('canManage', function (value) {
