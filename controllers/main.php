@@ -63,6 +63,9 @@ $controller->get('/{id}', function ($id) use ($app) {
     // log it
     $app['course_module_viewed']($cm, $instance, $course, $context);
 
+    // set heading and title
+    $app['heading_and_title']($course->fullname, $instance->name);
+
     // render
     return $app['twig']->render('talkpoints.twig', array(
         'baseurl' => $CFG->wwwroot . SLUG,
@@ -142,6 +145,15 @@ $controller->get('/talkpoint/{id}', function ($id) use ($app) {
         $template = 'webcam';
     }
 
+    // set heading and title
+    $instance_title = sprintf(
+        '%s %s %s',
+        $talkpoint['title'],
+        strtolower(get_string('by', $app['plugin'])),
+        $talkpoint['userfullname']
+    );
+    $app['heading_and_title']($course->fullname, $instance_title);
+
     // render
     return $app['twig']->render('talkpoint/' . $template . '.twig', array(
         'baseurl' => $CFG->wwwroot . SLUG,
@@ -155,6 +167,7 @@ $controller->get('/talkpoint/{id}', function ($id) use ($app) {
         'can_manage' => $can_manage,
         'is_guest' => isguestuser(),
         'nimbb_force_html5_player' => empty($CFG->nimbb_force_html5_player) ? false : $CFG->nimbb_force_html5_player,
+        'instance_title' => $instance_title,
     ));
 })
 ->bind('talkpoint')
@@ -259,6 +272,12 @@ $controller->match('/{instanceid}/add', function (Request $request, $instanceid)
             )));
         }
     }
+
+    // set heading and title
+    $app['heading_and_title'](
+        $course->fullname,
+        get_string('adding', $app['plugin']) . ' ' . get_string('pluginname', $app['plugin'])
+    );
 
     // render
     return $app['twig']->render('add.twig', array(
@@ -366,6 +385,12 @@ $controller->match('/{instanceid}/edit/{id}', function (Request $request, $insta
             )));
         }
     }
+
+    // set heading and title
+    $app['heading_and_title'](
+        $course->fullname,
+        get_string('editinga', 'moodle', get_string('pluginname', $app['plugin']))
+    );
 
     // render
     return $app['twig']->render('edit.twig', array(

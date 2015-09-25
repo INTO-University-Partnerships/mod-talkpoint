@@ -56,6 +56,7 @@ $string['savewebcam'] = 'Save webcam';
 $string['saveaudio'] = 'Save audio';
 $string['videostoconvert1'] = 'This talkpoint will not be visible (except to the user who created it) until its video has been converted into a compatible format.';
 $string['videostoconvert2'] = 'This will usually happen within five minutes of the video being uploaded.';
+$string['adding'] = 'Adding';
 
 // capabilities
 $string['talkpoint:addinstance'] = 'Add a new talkpoint';

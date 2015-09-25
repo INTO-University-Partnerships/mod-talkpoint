@@ -67,6 +67,7 @@ foreach (array(
     'get_course_and_course_module',
     'get_groupmode',
     'has_capability',
+    'heading_and_title',
     'image_resizer',
     'mimetype_mapper',
     'now',

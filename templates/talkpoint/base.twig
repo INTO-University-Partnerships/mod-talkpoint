@@ -5,7 +5,7 @@
 {{ header()|raw }}
 <div ng-app="talkpointsApp" ng-controller="talkpointCtrl" ng-cloak>
     <div>
-        <h3 ng-show="talkpoint">{% verbatim %}{{ talkpoint.title }} by {{ talkpoint.userfullname }}{% endverbatim %}</h3>
+        <h3 ng-show="talkpoint">{{ instance_title }}</h3>
         {% block main %}{% endblock %}
     </div>
     <div>
