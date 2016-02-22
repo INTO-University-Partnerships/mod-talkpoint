@@ -29,23 +29,27 @@
         <div class="controls">
             {{ form_widget(form.nimbbguid, {'attr': {'ng-value': 'nimbbguid' }}) }}
             {{ form_widget(form.mediatype, {'attr': {'ng-value': 'mediaType' }}) }}
-            <button type="button"
-                    ng-click="toggleCurrentRecording()"
-                    ng-disabled="toggleButtonDisabled"
-                    ng-bind="toggleButtonLabel"
-                    ng-show="nimbbguid"></button>
-            <play-media-comment main-video="true"
-                                ng-show="showCurrentRecording"
-                                nimbb-guid="{% verbatim %}{{ nimbbguid }}{% endverbatim %}"
-                                nimbb-control="nimbbControl"
-                                ng-if="nimbbguid">
-            </play-media-comment>
-            <add-media-comment ng-hide="showCurrentRecording"
-                               media-type="mediaType"
-                               adding-media-comment="addingMediaComment"
-                               save-changes="saveMedia(guid, finalfeedback)"
-                               cancel-changes="cancelChanges()"
-                               nimbb-control="nimbbControl">
+            <button
+                type="button"
+                ng-click="toggleCurrentRecording()"
+                ng-disabled="toggleButtonDisabled"
+                ng-bind="toggleButtonLabel"
+                ng-show="nimbbguid">
+            </button>
+            <play-nimbb-video
+                ng-show="showCurrentRecording"
+                is-subject="true"
+                nimbb-guid="{% verbatim %}{{ nimbbguid }}{% endverbatim %}"
+                nimbb-control="nimbbControl"
+                ng-if="nimbbguid">
+            </play-nimbb-video>
+            <add-media-comment
+                ng-hide="showCurrentRecording"
+                media-type="mediaType"
+                adding-media-comment="addingMediaComment"
+                save-changes="saveMedia(guid, finalfeedback)"
+                cancel-changes="cancelChanges()"
+                nimbb-control="nimbbControl">
             </add-media-comment>
         </div>
         {{ form_errors(form.nimbbguid) }}
