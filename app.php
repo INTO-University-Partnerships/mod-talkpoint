@@ -54,6 +54,7 @@ $app['file_constraints'] = array(
 //        'audio/ogg',
         'video/mp4',
         'video/webm',
+        'video/quicktime',
 //        'video/ogg',
         'application/ogg',
         'application/octet-stream',

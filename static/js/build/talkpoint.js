@@ -495,6 +495,7 @@ app.directive('jplayer', ['CONFIG', function (config) {
             jplayer.jPlayer({
                 ready: function ready() {
                     var obj = {};
+                    console.info('INTO: Video formats', attrs.formats);
                     angular.forEach(attrs.formats.split(','), function (format) {
                         if (['m4v', 'ogv', 'webmv'].indexOf(format) !== -1) {
                             obj[format] = config.baseurl + '/servevideofile/' + attrs.talkpointid + '/' + format;

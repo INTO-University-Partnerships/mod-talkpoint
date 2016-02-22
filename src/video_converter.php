@@ -25,7 +25,7 @@ class video_converter {
 
     /**
      * if the single file in the given directory is one of the below mime types, then queue a conversion to m4v
-     * 'video/webm', 'application/ogg', 'application/octet-stream'
+     * 'video/webm', 'application/ogg', 'application/octet-stream', 'video/quicktime'
      * (see 'file_constraints' in app.php and the jPlayer essential/counterpart formats in mimetype_mapper.php)
      * @param string $upload_path
      * @param integer $talkpointid
@@ -48,7 +48,7 @@ class video_converter {
         $file = F\head($files);
         $finfo = new finfo(FILEINFO_MIME_TYPE);
         $mime_type = $finfo->file($upload_path . '/' . $file);
-        if (!F\contains(['video/webm', 'application/ogg', 'application/octet-stream'], $mime_type, true)) {
+        if (!F\contains(['video/webm', 'application/ogg', 'application/octet-stream', 'video/quicktime'], $mime_type, true)) {
             return null;
         }
 

@@ -34,15 +34,16 @@ class mimetype_mapper {
                 'image/jpeg' => array('image', null),
                 'image/gif' => array('image', null),
                 'image/png' => array('image', null),
-                'audio/mpeg' => array('audio', 'mp3'),      // jPlayer essential audio format
-//                'audio/mp4' => array('audio', 'm4a'),       // jPlayer essential audio format
-//                'audio/webm' => array('audio', 'webma'),    // jPlayer counterpart audio format
-//                'audio/ogg' => array('audio', 'oga'),       // jPlayer counterpart audio format
-                'video/mp4' => array('video', 'm4v'),       // jPlayer essential video format
-                'video/webm' => array('video', 'webmv'),    // jPlayer counterpart video format
-//                'video/ogg' => array('video', 'ogv'),       // jPlayer counterpart video format
-                'application/ogg' => array('video', 'ogv'), // jPlayer counterpart video format
-                'application/octet-stream' => array('video', 'webmv'),
+                'audio/mpeg' => array('audio', 'mp3'),                 // jPlayer essential audio format
+//                'audio/mp4' => array('audio', 'm4a'),                // jPlayer essential audio format
+//                'audio/webm' => array('audio', 'webma'),             // jPlayer counterpart audio format
+//                'audio/ogg' => array('audio', 'oga'),                // jPlayer counterpart audio format
+                'video/mp4' => array('video', 'm4v'),                  // jPlayer essential video format
+                'video/webm' => array('video', 'webmv'),               // jPlayer counterpart video format
+//                'video/ogg' => array('video', 'ogv'),                // jPlayer counterpart video format
+                'application/ogg' => array('video', 'ogv'),            // jPlayer counterpart video format
+                'application/octet-stream' => array('video', 'webmv'), // jPlayer counterpart video format
+                'video/quicktime' => array('video', 'mov'),            // not supported by jPlayer
             );
         }
 
@@ -81,11 +82,11 @@ class mimetype_mapper {
                 return false;
             }
             try {
-                list($ft, ) = $this->map($upload_path . '/' . $file);
+                list($ft, $f) = $this->map($upload_path . '/' . $file);
             } catch (coding_exception $e) {
                 return false;
             }
-            return $ft === 'video';
+            return $ft === 'video' && F\contains(['m4v', 'webmv', 'ogv'], $f);
         }), function ($file) use ($upload_path) {
             return $this->map($upload_path . '/' . $file)[1];
         }));
