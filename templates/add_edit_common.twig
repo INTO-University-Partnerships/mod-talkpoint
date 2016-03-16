@@ -37,14 +37,14 @@
                 ng-show="nimbbguid">
             </button>
             <play-nimbb-video
-                ng-show="showCurrentRecording"
+                ng-if="showCurrentRecording"
                 is-subject="true"
                 nimbb-guid="{% verbatim %}{{ nimbbguid }}{% endverbatim %}"
                 nimbb-control="nimbbControl"
                 ng-if="nimbbguid">
             </play-nimbb-video>
             <add-media-comment
-                ng-hide="showCurrentRecording"
+                ng-if="!showCurrentRecording"
                 media-type="mediaType"
                 adding-media-comment="addingMediaComment"
                 save-changes="saveMedia(guid, finalfeedback)"
