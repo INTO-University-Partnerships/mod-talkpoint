@@ -192,7 +192,8 @@ $controller->match('/{instanceid}/add', function (Request $request, $instanceid)
     $context = context_module::instance($cm->id);
 
     // ensure the talkpoint is not closed
-    $closed = $DB->get_field('talkpoint', 'closed', array('id' => $instanceid), MUST_EXIST) == 1;
+    $talkpoint = $DB->get_record('talkpoint', array('id' => $instanceid), '*', MUST_EXIST);
+    $closed = $talkpoint->closed == 1;
     if (!$app['has_capability']('moodle/course:manageactivities', $context) && $closed) {
         return $app->redirect($CFG->wwwroot . SLUG . $app['url_generator']->generate('byinstanceid', array(
             'id' => $instanceid,
@@ -252,6 +253,12 @@ $controller->match('/{instanceid}/add', function (Request $request, $instanceid)
             require_once __DIR__ . '/../models/talkpoint_model.php';
             $talkpoint_model = new talkpoint_model();
             $data = $talkpoint_model->save($data, $app['now']());
+
+            $completion = new completion_info($course);
+            if ($completion->is_enabled($cm) && $talkpoint->completioncreatetalkpoint) {
+                // mark completed
+                $completion->update_state($cm, COMPLETION_COMPLETE);
+            }
 
             if (!empty($files['uploadedfile'])) {
                 // move the uploaded file to its permanent location (now we know the new talkpoint id)

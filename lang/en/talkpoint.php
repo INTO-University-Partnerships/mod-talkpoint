@@ -57,6 +57,10 @@ $string['saveaudio'] = 'Save audio';
 $string['videostoconvert1'] = 'This talkpoint will not be visible (except to the user who created it) until its video has been converted into a compatible format.';
 $string['videostoconvert2'] = 'This will usually happen within five minutes of the video being uploaded.';
 $string['adding'] = 'Adding';
+$string['completioncreatetalkpoint'] = 'Creation completes Talkpoint activity';
+$string['completioncreatetalkpoint_desc'] = 'Student must submit a Talkpoint to complete this activity';
+$string['completioncommentontalkpoint'] = 'Comment creation completes Talkpoint activity';
+$string['completioncommentontalkpoint_desc'] = 'Student must add a comment to another user\'s Talkpoint to complete this activity';
 
 // capabilities
 $string['talkpoint:addinstance'] = 'Add a new talkpoint';

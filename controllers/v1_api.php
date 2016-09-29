@@ -275,6 +275,13 @@ $controller->post('/talkpoint/{instanceid}/{talkpointid}/comment', function (Req
     // save talkpoint
     $data = $talkpoint_comment_model->save($data, $app['now']());
 
+    $talkpoint = $DB->get_record('talkpoint', array('id' => $instanceid), '*', MUST_EXIST);
+    $completion = new completion_info($course);
+    if ($completion->is_enabled($cm) && $talkpoint->completioncommentontalkpoint) {
+        // mark completed
+        $completion->update_state($cm, COMPLETION_COMPLETE);
+    }
+
     // determine the user profile picture (shouldn't hit the database)
     $data['userpicture'] = $OUTPUT->user_picture((object)array(
         'id' => $data['userid'],

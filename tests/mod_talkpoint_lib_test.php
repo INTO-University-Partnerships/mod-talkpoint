@@ -87,6 +87,7 @@ class mod_talkpoint_lib_test extends advanced_testcase {
     public function test_talkpoint_supports() {
         $features = array(
             FEATURE_COMPLETION_TRACKS_VIEWS,
+            FEATURE_COMPLETION_HAS_RULES,
             FEATURE_BACKUP_MOODLE2,
             FEATURE_GROUPS,
         );
@@ -105,7 +106,6 @@ class mod_talkpoint_lib_test extends advanced_testcase {
             FEATURE_ADVANCED_GRADING,
             FEATURE_CONTROLS_GRADE_VISIBILITY,
             FEATURE_PLAGIARISM,
-            FEATURE_COMPLETION_HAS_RULES,
             FEATURE_NO_VIEW_LINK,
             FEATURE_IDNUMBER,
             FEATURE_GROUPINGS,

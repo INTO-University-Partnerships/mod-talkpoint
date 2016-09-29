@@ -12,6 +12,8 @@ class backup_talkpoint_activity_structure_step extends backup_activity_structure
             'closed',
             'timecreated',
             'timemodified',
+            'completioncreatetalkpoint',
+            'completioncommentontalkpoint'
         ));
 
         $talkpoint->set_source_table('talkpoint', array('id' => backup::VAR_ACTIVITYID));

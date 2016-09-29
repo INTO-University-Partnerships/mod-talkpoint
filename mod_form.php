@@ -63,4 +63,63 @@ class mod_talkpoint_mod_form extends moodleform_mod {
         }
     }
 
+    /**
+     * Display module-specific activity completion rules.
+     * Part of the API defined by moodleform_mod
+     * @return array Array of string IDs of added items, empty array if none
+     */
+    public function add_completion_rules() {
+        $mform = $this->_form;
+
+        $mform->addElement(
+            'checkbox',
+            'completioncreatetalkpoint',
+            get_string('completioncreatetalkpoint', 'talkpoint'),
+            get_string('completioncreatetalkpoint_desc', 'talkpoint')
+        );
+
+        $mform->addElement(
+            'checkbox',
+            'completioncommentontalkpoint',
+            get_string('completioncommentontalkpoint', 'talkpoint'),
+            get_string('completioncommentontalkpoint_desc', 'talkpoint')
+        );
+
+        return [
+            'completioncreatetalkpoint',
+            'completioncommentontalkpoint'
+        ];
+    }
+
+    /**
+     * determines if completion is enabled for this module
+     * @param array $data
+     * @return bool
+     */
+    function completion_rule_enabled($data) {
+        return !empty($data['completioncreatetalkpoint']) || !empty($data['completioncommentontalkpoint']);
+    }
+
+    /**
+     * return the data that will be used upon saving
+     * @return bool|object
+     */
+    function get_data() {
+        $data = parent::get_data();
+        if (!$data) {
+            return false;
+        }
+        if (!empty($data->completionunlocked)) {
+            // turn off completion settings if the checkboxes aren't ticked
+            $autocompletion = !empty($data->completion) && $data->completion == COMPLETION_TRACKING_AUTOMATIC;
+            if (empty($data->completioncreatetalkpoint) || !$autocompletion) {
+                $data->completioncreatetalkpoint = 0;
+            }
+            if (empty($data->completioncommentontalkpoint) || !$autocompletion) {
+                $data->completioncommentontalkpoint = 0;
+            }
+        }
+        return $data;
+    }
+
 }

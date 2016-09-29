@@ -82,5 +82,21 @@ function xmldb_talkpoint_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2015070900, 'mod', 'talkpoint');
     }
 
+    // add completion criteria columns to database (e.g. 'completioncreatetalkpoint' and 'completioncommentontalkpoint'
+    if ($oldversion < 2016101100) {
+        $table = new xmldb_table('talkpoint');
+
+        $completioncreatetalkpoint = new xmldb_field('completioncreatetalkpoint', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
+        if (!$dbman->field_exists($table, $completioncreatetalkpoint)) {
+            $dbman->add_field($table, $completioncreatetalkpoint);
+        }
+        $completioncommentontalkpoint = new xmldb_field('completioncommentontalkpoint', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
+        if (!$dbman->field_exists($table, $completioncommentontalkpoint)) {
+            $dbman->add_field($table, $completioncommentontalkpoint);
+        }
+
+        upgrade_plugin_savepoint(true, 2016101100, 'mod', 'talkpoint');
+    }
+
     return true;
 }

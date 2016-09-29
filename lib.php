@@ -65,7 +65,7 @@ function talkpoint_supports($feature) {
         FEATURE_ADVANCED_GRADING => false,
         FEATURE_CONTROLS_GRADE_VISIBILITY => false,
         FEATURE_PLAGIARISM => false,
-        FEATURE_COMPLETION_HAS_RULES => false,
+        FEATURE_COMPLETION_HAS_RULES => true,
         FEATURE_NO_VIEW_LINK => false,
         FEATURE_IDNUMBER => false,
         FEATURE_GROUPS => true,
@@ -82,4 +82,48 @@ function talkpoint_supports($feature) {
         return null;
     }
     return $support[$feature];
+}
+
+/**
+ * Obtains the automatic completion state for this talkpoint based on any conditions
+ * in talkpoint settings.
+ *
+ * @param object $course
+ * @param object $cm
+ * @param int $userid
+ * @param bool $type Type of comparison (or/and; can be used as return value if no conditions)
+ * @return bool whether completed
+ */
+function talkpoint_get_completion_state($course, $cm, $userid, $type) {
+    global $DB;
+    $talkpoint = $DB->get_record('talkpoint', ['id' => $cm->instance], '*', MUST_EXIST);
+
+    $comments_sql = <<< SQL
+        SELECT tc.id, tc.textcomment
+        FROM {talkpoint_comment} tc
+        INNER JOIN {talkpoint_talkpoint} tt ON tt.id = tc.talkpointid
+        WHERE tt.instanceid = ?
+            AND tc.userid = ?
+            AND tt.userid != ?
+SQL;
+    $comments = $DB->get_records_sql($comments_sql, [$talkpoint->id, $userid, $userid]);
+
+    $talkpoints_sql = <<<SQL
+        SELECT tt.id, tt.title
+        FROM {talkpoint_talkpoint} tt
+        WHERE tt.instanceid = ?
+            AND tt.userid = ?
+SQL;
+    $talkpoints = $DB->get_records_sql($talkpoints_sql, [$talkpoint->id, $userid]);
+
+    if ($type == COMPLETION_AND && $talkpoint->completioncommentontalkpoint && $talkpoint->completioncreatetalkpoint) {
+        return !empty($comments) && !empty($talkpoints);
+    } else if ($type == COMPLETION_OR && $talkpoint->completioncommentontalkpoint && $talkpoint->completioncreatetalkpoint) {
+        return !empty($comments) || !empty($talkpoints);
+    } else if ($talkpoint->completioncommentontalkpoint) {
+        return !empty($comments);
+    } else if ($talkpoint->completioncreatetalkpoint) {
+        return !empty($talkpoints);
+    }
+    return $type;
 }
